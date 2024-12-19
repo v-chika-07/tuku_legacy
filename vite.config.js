@@ -7,7 +7,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
-      external: ['@rollup/rollup-linux-x64-gnu'],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
@@ -18,12 +17,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     sourcemap: false
   },
-  optimizeDeps: {
-    exclude: ['@rollup/rollup-linux-x64-gnu']
-  },
   server: {
     port: parseInt(process.env.VITE_PORT) || 3007,
-    open: true, // Open browser on server start
-    host: true, // Listen on all local IPs
+    open: true
   }
-})
+});
