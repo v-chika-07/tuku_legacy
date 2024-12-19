@@ -1,6 +1,6 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config';
-import { sendRegistrationEmail, isRateLimited } from '../../services/emailService';
+import { sendRegistrationEmail } from '../../services/emailService';
 
 const COLLECTION_NAME = 'event_registrations';
 
@@ -9,11 +9,6 @@ export const submitEventRegistration = async (registrationData) => {
     // Validate the database connection
     if (!db) {
       throw new Error('Database connection not established');
-    }
-
-    // Check rate limiting for email
-    if (isRateLimited()) {
-      throw new Error('Please wait a moment before submitting again');
     }
 
     // Add timestamp to the data

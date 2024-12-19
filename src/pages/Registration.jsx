@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FaUser, FaRunning, FaCreditCard, FaCheck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { submitEventRegistration } from '../firebase/services/eventService';
+import { sendRegistrationEmail } from '../services/emailService';
 import { toast } from 'react-toastify';
 
 const Registration = () => {
@@ -69,7 +70,20 @@ const Registration = () => {
         const result = await submitEventRegistration(registrationData);
         
         if (result.success) {
-          toast.success('Registration successful!');
+          // Send confirmation email
+          try {
+            const emailResult = await sendRegistrationEmail(registrationData);
+            console.log('Email service response:', emailResult);
+            toast.success('Registration successful! Check your email for confirmation.');
+          } catch (emailError) {
+            console.error('Email sending failed:', emailError);
+            // Log more details about the error
+            if (emailError.details) {
+              console.error('Detailed error:', emailError.details);
+            }
+            // Still navigate to success page even if email fails
+            toast.warning(`Registration successful, but email failed: ${emailError.error}`);
+          }
           navigate('/registration-success');
         }
       } catch (error) {
