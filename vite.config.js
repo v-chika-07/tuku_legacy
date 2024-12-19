@@ -19,6 +19,8 @@ export default defineConfig({
   },
   server: {
     port: parseInt(process.env.VITE_PORT) || 3007,
-    open: true
+    open: true,
+    host: true, // Listen on all local IPs
+
   }
 });
