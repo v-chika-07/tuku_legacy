@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaUser, FaRunning, FaCreditCard, FaCheck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { submitEventRegistration } from '../firebase/services/eventService';
+import { toast } from 'react-toastify';
 
 const Registration = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     // Personal Information
     firstName: '',
@@ -42,14 +45,39 @@ const Registration = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (step < 3) {
       setStep(step + 1);
     } else {
-      // Handle form submission
-      console.log('Form submitted:', formData);
-      setStep(4); // Show success message
+      setIsSubmitting(true);
+      try {
+        // Remove sensitive payment information before storing
+        const registrationData = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          dateOfBirth: formData.dateOfBirth,
+          gender: formData.gender,
+          raceCategory: formData.raceCategory,
+          tShirtSize: formData.tShirtSize,
+          emergencyContact: formData.emergencyContact,
+          emergencyPhone: formData.emergencyPhone,
+        };
+
+        const result = await submitEventRegistration(registrationData);
+        
+        if (result.success) {
+          toast.success('Registration successful!');
+          navigate('/registration-success');
+        }
+      } catch (error) {
+        toast.error('Registration failed. Please try again.');
+        console.error('Registration error:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -340,9 +368,10 @@ const Registration = () => {
                   )}
                   <button
                     type="submit"
-                    className="bg-zunzo-primary text-white px-8 py-3 rounded-full hover:bg-orange-600 transition-colors"
+                    disabled={isSubmitting}
+                    className={`bg-zunzo-primary text-white px-8 py-3 rounded-full hover:bg-orange-600 transition-colors ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    {step === 3 ? 'Complete Registration' : 'Next Step'}
+                    {isSubmitting ? 'Submitting...' : step === 3 ? 'Complete Registration' : 'Next Step'}
                   </button>
                 </div>
               )}

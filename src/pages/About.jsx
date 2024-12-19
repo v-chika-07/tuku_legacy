@@ -1,46 +1,28 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaMedal, FaUsers, FaHandshake, FaHeart } from 'react-icons/fa';
+import { FaMicrophone, FaRunning, FaGlobe, FaHeart } from 'react-icons/fa';
 
 const About = () => {
-  const values = [
+  const achievements = [
     {
-      icon: <FaMedal />,
-      title: "Excellence",
-      description: "We strive for excellence in everything we do, from training programs to community events."
+      icon: <FaMicrophone />,
+      title: "Musical Legacy",
+      description: "67 albums released over nearly 50 years, establishing an unparalleled legacy in African music."
     },
     {
-      icon: <FaUsers />,
-      title: "Community",
-      description: "Building strong relationships and fostering a supportive running community."
+      icon: <FaGlobe />,
+      title: "Cultural Impact",
+      description: "Renowned African music icon and cultural ambassador, bridging communities through music."
     },
     {
-      icon: <FaHandshake />,
-      title: "Integrity",
-      description: "Maintaining the highest standards of professionalism and ethical conduct."
+      icon: <FaRunning />,
+      title: "Health Advocacy",
+      description: "Passionate advocate for health awareness and community wellness through cultural engagement."
     },
     {
       icon: <FaHeart />,
-      title: "Passion",
-      description: "Sharing our love for running and inspiring others to achieve their goals."
-    }
-  ];
-
-  const teamMembers = [
-    {
-      name: "John Smith",
-      role: "Head Coach",
-      description: "Former Olympic athlete with 15+ years of coaching experience."
-    },
-    {
-      name: "Emily Brown",
-      role: "Training Coordinator",
-      description: "Certified running coach specializing in marathon training."
-    },
-    {
-      name: "Michael Chen",
-      role: "Community Manager",
-      description: "Passionate runner and event organization specialist."
+      title: "Community Spirit",
+      description: "Dedicated to excellence, culture, and community wellness throughout his illustrious career."
     }
   ];
 
@@ -50,95 +32,81 @@ const About = () => {
       <motion.section 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-zunzo-secondary text-white py-20"
+        transition={{ duration: 1 }}
+        className="relative bg-gradient-to-br from-primary via-secondary to-accent text-white py-20"
       >
         <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-center max-w-3xl mx-auto"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">Our Story</h1>
-            <p className="text-xl text-gray-300">
-              Founded in 2010, Zunzo Running Club has grown from a small group of 
-              passionate runners to a thriving community dedicated to promoting health, 
-              fitness, and the joy of running.
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">About Oliver "Tuku" Mtukudzi</h1>
+            <p className="text-xl mb-8 text-white">
+              A musical legend whose influence transcends generations, Oliver "Tuku" Mtukudzi's legacy continues 
+              to inspire and unite communities through the power of music and cultural celebration.
             </p>
-          </motion.div>
+          </div>
         </div>
       </motion.section>
 
-      {/* Values Section */}
-      <section className="py-20">
+      {/* Legacy Section */}
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Our Values</h2>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Celebrating 50 Years of Tuku Music</h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-2xl font-semibold mb-4 text-gray-900">Musical Journey</h3>
+                <p className="mb-6 text-gray-800">
+                  With an impressive catalog of 67 albums spanning nearly five decades, Oliver Mtukudzi's 
+                  music has been a powerful force for social change and cultural preservation. His unique 
+                  sound, known as "Tuku Music," combines various traditional Zimbabwean styles with modern influences.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold mb-4 text-gray-900">Cultural Impact</h3>
+                <p className="mb-6 text-gray-800">
+                  As a cultural ambassador, Tuku used his music as an educational tool and social catalyst, 
+                  addressing important issues while celebrating Zimbabwe's rich cultural heritage. His 
+                  influence extends far beyond music, inspiring positive change in communities worldwide.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Achievements Grid */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
-            {values.map((value, index) => (
+            {achievements.map((achievement, index) => (
               <motion.div
                 key={index}
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2 }}
+                className="text-center p-6 bg-white rounded-lg shadow-lg"
               >
-                <div className="text-4xl text-zunzo-primary mb-4 flex justify-center">
-                  {value.icon}
+                <div className="text-4xl text-accent mb-4">
+                  {achievement.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-2">{value.title}</h3>
-                <p className="text-gray-600">{value.description}</p>
+                <h3 className="text-xl font-semibold mb-2 text-gray-900">{achievement.title}</h3>
+                <p className="text-gray-700">{achievement.description}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="bg-gray-50 py-20">
+      {/* Marathon Connection */}
+      <section className="py-16 bg-gradient-to-br from-primary to-accent">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Meet Our Team</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {teamMembers.map((member, index) => (
-              <motion.div
-                key={index}
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-white p-8 rounded-xl shadow-lg"
-              >
-                <div className="w-24 h-24 bg-gradient-to-br from-zunzo-primary to-orange-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-white">
-                    {member.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-center mb-2">{member.name}</h3>
-                <p className="text-zunzo-primary text-center mb-4">{member.role}</p>
-                <p className="text-gray-600 text-center">{member.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Mission Statement */}
-      <section className="bg-gradient-to-r from-zunzo-primary to-orange-600 py-20 text-white">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center max-w-3xl mx-auto"
-          >
-            <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
-            <p className="text-xl">
-              To inspire and empower individuals through running, fostering a 
-              community where every member can achieve their personal best while 
-              building lasting friendships and promoting healthy lifestyles.
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-6 text-white">The Marathon Legacy</h2>
+            <p className="text-xl mb-8 text-white">
+              The Oliver Mtukudzi Memorial Half Marathon reflects Tuku's personal love for running and his 
+              dedication to excellence. As we celebrate 50 years of Tuku Music in 2025, this event stands as 
+              a testament to his enduring impact on culture, health awareness, and community wellness.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>

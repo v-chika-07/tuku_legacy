@@ -1,10 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { submitContactForm } from '../firebase/services/contactService';
+import { toast } from 'react-toastify';
 import image1 from '../assets/images/IMG-20241218-WA0007.jpg';
 import image2 from '../assets/images/IMG-20241218-WA0008.jpg';
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const result = await submitContactForm(formData);
+      if (result.success) {
+        toast.success('Message sent successfully!');
+        setFormData({ name: '', email: '', message: '' });
+      }
+    } catch (error) {
+      toast.error('Failed to send message. Please try again.');
+      console.error('Contact form error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="pt-20 min-h-screen relative">
       {/* Background Images */}
@@ -59,7 +94,7 @@ const Contact = () => {
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-text-light">Contact Us</h1>
             <p className="text-text-light text-lg">
-              Get in touch with us for any inquiries about the Tuku Legacy Half Marathon
+              Get in touch with Tuku Music & Promotions Oct Ltd for any inquiries about the Oliver Mtukudzi Memorial Half Marathon
             </p>
           </div>
 
@@ -72,22 +107,30 @@ const Contact = () => {
                   <FaPhone className="text-accent text-xl" />
                   <div>
                     <h3 className="font-bold text-text-light">Phone</h3>
-                    <p className="text-text-light">+263 77 123 4567</p>
+                    <p className="text-text-light">+263 772 388 112</p>
+                    <p className="text-text-light">+263 781 110 655</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <FaEnvelope className="text-accent text-xl" />
                   <div>
                     <h3 className="font-bold text-text-light">Email</h3>
-                    <p className="text-text-light">info@tukulegacy.com</p>
+                    <p className="text-text-light">info@tukumusic.africa</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <FaMapMarkerAlt className="text-accent text-xl" />
                   <div>
                     <h3 className="font-bold text-text-light">Location</h3>
-                    <p className="text-text-light">Harare, Zimbabwe</p>
+                    <p className="text-text-light">238 Galloway Rd, Norton</p>
                   </div>
+                </div>
+                <div className="mt-6 pt-6 border-t border-white/10">
+                  <h3 className="font-bold text-text-light mb-2">Organization Details</h3>
+                  <p className="text-text-light">Tuku Music & Promotions Oct Ltd</p>
+                  <p className="text-text-light">Owner: Daisy K. Mtukudzi</p>
+                  <p className="text-text-light text-sm">Domain: Olivermtukudzi.com</p>
+                  <p className="text-text-light text-sm italic mt-2">Visual Arts and related activities</p>
                 </div>
               </div>
             </div>
@@ -95,33 +138,48 @@ const Contact = () => {
             {/* Contact Form */}
             <div className="bg-white/5 backdrop-blur-sm p-8 rounded-2xl">
               <h2 className="text-2xl font-bold mb-6 text-text-light">Send a Message</h2>
-              <form className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <input
                     type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
                     placeholder="Your Name"
+                    required
                     className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-text-light placeholder-text-light/50 focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div>
                   <input
                     type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
                     placeholder="Your Email"
+                    required
                     className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-text-light placeholder-text-light/50 focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div>
                   <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
                     rows="4"
                     placeholder="Your Message"
+                    required
                     className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-text-light placeholder-text-light/50 focus:outline-none focus:border-accent"
                   ></textarea>
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-accent text-text-light py-3 px-6 rounded-lg hover:bg-primary transition-colors duration-300"
+                  disabled={isSubmitting}
+                  className={`w-full bg-accent text-text-light py-3 px-6 rounded-lg hover:bg-primary transition-colors duration-300 ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
-                  Send Message
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </div>

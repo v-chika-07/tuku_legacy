@@ -96,7 +96,7 @@ const Home = () => {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="text-4xl md:text-6xl font-bold mb-4"
             >
-              TUKU LEGACY HALF MARATHON
+              The Oliver Mtukudzi Memorial Half Marathon (OM³)
             </motion.h1>
             <motion.p
               initial={{ y: 50, opacity: 0 }}
@@ -104,7 +104,7 @@ const Home = () => {
               transition={{ delay: 0.7, duration: 0.8 }}
               className="text-xl md:text-2xl mb-8"
             >
-              Celebrating Music, Culture & Running Excellence
+              Together, let's celebrate a legend, raise awareness, and make strides toward a healthier, more connected world
             </motion.p>
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
@@ -126,18 +126,18 @@ const Home = () => {
             {[
               { 
                 icon: <FaMusic className="text-6xl" />, 
-                title: 'Live Music', 
-                description: 'Experience the best of Tuku Music' 
+                title: 'Musical Legacy', 
+                description: "Celebrating 50 Years of Tuku Music in 2025, featuring the inspirational \"Wasakara\" as our theme song" 
               },
               { 
-                icon: <FaTshirt className="text-6xl" />, 
-                title: 'Exclusive Merch', 
-                description: 'Limited edition race merchandise' 
+                icon: <FaCalendarAlt className="text-6xl" />, 
+                title: 'Health Awareness', 
+                description: 'Empowering Global Health through diabetes awareness and promoting proactive health management' 
               },
               { 
                 icon: <FaRunning className="text-6xl" />, 
-                title: 'OLIFA Support', 
-                description: 'Supporting young athletic talent' 
+                title: 'Community Impact', 
+                description: "Join us in preserving Tuku's legacy while fostering unity through culture and athleticism" 
               }
             ].map((feature, index) => (
               <motion.div 
@@ -145,77 +145,38 @@ const Home = () => {
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.3, duration: 0.6 }}
-                className="text-center p-8 bg-white/5 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className={`text-center p-8 rounded-2xl shadow-lg backdrop-blur-sm transform hover:scale-105 transition-all duration-300
+                  ${index === 0 ? 'bg-gradient-to-br from-primary/80 to-secondary/80' : 
+                    index === 1 ? 'bg-gradient-to-br from-secondary/80 to-accent/80' : 
+                    'bg-gradient-to-br from-accent/80 to-primary/80'}`}
               >
                 <div className="text-accent mb-6 flex justify-center">
                   {feature.icon}
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-primary">{feature.title}</h3>
-                <p className="text-white text-lg">{feature.description}</p>
+                <h3 className="text-xl font-bold text-white mb-4">{feature.title}</h3>
+                <p className="text-gray-100">{feature.description}</p>
               </motion.div>
             ))}
           </div>
         </section>
 
-        {/* About Section */}
-        <section className="bg-primary text-text-light py-20">
-          <div className="container mx-auto">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-              >
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">Why Join Tuku Legacy Half Marathon?</h2>
-                <p className="text-white mb-6">
-                  The Tuku Legacy Half Marathon is more than just a race. It's a celebration of music, 
-                  culture, and athletic excellence, honoring the legendary Oliver Mtukudzi while supporting 
-                  young athletic talent through OLIFA.
-                </p>
-                <ul className="space-y-4">
-                  {[
-                    "Live performances of Tuku Music classics",
-                    "Exclusive race merchandise and memorabilia",
-                    "Support for young athletes through OLIFA",
-                    "Scenic route through historic locations"
-                  ].map((item, index) => (
-                    <motion.li 
-                      key={index}
-                      initial={{ x: -20, opacity: 0 }}
-                      whileInView={{ x: 0, opacity: 1 }}
-                      transition={{ delay: index * 0.2, duration: 0.5 }}
-                      viewport={{ once: true }}
-                      className="flex items-center space-x-2"
-                    >
-                      <FaArrowRight className="text-accent" />
-                      <span>{item}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-              </motion.div>
-              <motion.div
-                initial={{ x: 50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-                className="bg-gradient-to-br from-accent to-accent/60 p-1 rounded-2xl"
-              >
-                <div className="bg-white/5 backdrop-blur-sm p-8 rounded-xl">
-                  <div className="text-center mb-8">
-                    <FaQuoteLeft className="text-4xl text-accent mx-auto mb-4" />
-                    <p className="text-xl italic mb-6">
-                      "The Tuku Legacy Half Marathon combines the spirit of running with 
-                      the soul of music. It's an experience that celebrates both athletic 
-                      achievement and cultural heritage."
-                    </p>
-                    <p className="text-accent font-bold">- Sam Mataure</p>
-                    <p className="text-secondary">Race Director</p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
+        {/* About Section Preview */}
+        <section className="container mx-auto py-16 px-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-4xl mx-auto text-center bg-gradient-to-br from-primary/90 via-secondary/90 to-accent/90 p-8 rounded-2xl shadow-lg backdrop-blur-sm transform hover:scale-105 transition-all duration-300"
+          >
+            <FaQuoteLeft className="text-white text-4xl mx-auto mb-6 opacity-80" />
+            <blockquote className="text-2xl text-white mb-8 font-light italic">
+              "The Oliver Mtukudzi Memorial Half Marathon honors the legacy of a musical icon while promoting health awareness and community wellness. Join us in celebrating Tuku's enduring impact on culture and society."
+            </blockquote>
+            <Link to="/about" className="inline-flex items-center text-white hover:text-accent transition-colors group">
+              Learn more about Tuku's Legacy 
+              <FaArrowRight className="ml-2 transform group-hover:translate-x-2 transition-transform duration-300" />
+            </Link>
+          </motion.div>
         </section>
 
         {/* Call to Action */}

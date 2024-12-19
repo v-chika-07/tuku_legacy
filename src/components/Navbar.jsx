@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes, FaHome, FaInfoCircle, FaCalendarAlt, FaMusic, FaTshirt, FaHandsHelping, FaEnvelope } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
@@ -7,13 +7,13 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'About', path: '/about' },
-    { name: 'Events', path: '/events' },
-    { name: 'Music', path: '/music' },
-    { name: 'Merch', path: '/merch' },
-    { name: 'OLIFA', path: '/olifa' },
-    { name: 'Contact', path: '/contact' }
+    { name: 'Home', path: '/', icon: <FaHome className="mb-1 mx-auto text-lg" /> },
+    { name: 'About', path: '/about', icon: <FaInfoCircle className="mb-1 mx-auto text-lg" /> },
+    { name: 'Events', path: '/events', icon: <FaCalendarAlt className="mb-1 mx-auto text-lg" /> },
+    { name: 'Music', path: '/music', icon: <FaMusic className="mb-1 mx-auto text-lg" /> },
+    { name: 'Merch', path: '/merch', icon: <FaTshirt className="mb-1 mx-auto text-lg" /> },
+    { name: 'OLIFA', path: '/olifa', icon: <FaHandsHelping className="mb-1 mx-auto text-lg" /> },
+    { name: 'Contact', path: '/contact', icon: <FaEnvelope className="mb-1 mx-auto text-lg" /> }
   ];
 
   return (
@@ -45,8 +45,9 @@ const Navbar = () => {
             <li key={item.name}>
               <Link 
                 to={item.path} 
-                className="text-text-light hover:text-accent transition-colors"
+                className="text-text-light hover:text-accent transition-colors flex flex-col items-center"
               >
+                {item.icon}
                 {item.name}
               </Link>
             </li>
@@ -66,9 +67,10 @@ const Navbar = () => {
                 <li key={item.name}>
                   <Link 
                     to={item.path} 
-                    className="block text-text-light hover:text-accent"
+                    className="block text-text-light hover:text-accent flex items-center gap-3"
                     onClick={() => setIsOpen(false)}
                   >
+                    {item.icon}
                     {item.name}
                   </Link>
                 </li>

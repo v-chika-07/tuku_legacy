@@ -17,6 +17,9 @@ export default {
         'text-light': '#D1D1D1', // Light text
         'text-dark': '#3B3561',  // Dark text
       },
+      animation: {
+        'spin-slow': 'spin 8s linear infinite',
+      },
       backgroundColor: theme => ({
         ...theme('colors'),
       }),
