@@ -41,7 +41,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="pt-20 min-h-screen relative">
+    <div className="pt-10 min-h-screen relative">
       {/* Background Images */}
       <div className="fixed inset-0 z-0">
         {/* Left Image */}
@@ -101,36 +101,37 @@ const Contact = () => {
           <div className="grid md:grid-cols-2 gap-8">
             {/* Contact Information */}
             <div className="bg-white/5 backdrop-blur-sm p-8 rounded-2xl">
-              <h2 className="text-2xl font-bold mb-6 text-text-light">Get in Touch</h2>
+              <h2 className="text-2xl font-bold mb-6 text-text-light text-center">Get in Touch</h2>
               <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <FaPhone className="text-accent text-xl" />
-                  <div>
-                    <h3 className="font-bold text-text-light">Phone</h3>
-                    <p className="text-text-light">+263 772 388 112</p>
-                    <p className="text-text-light">+263 781 110 655</p>
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="flex items-center justify-center space-x-4">
+                    <FaPhone className="text-accent text-xl" />
+                    <div className="text-center">
+                      <h3 className="font-bold text-text-light">Phone</h3>
+                      <p className="text-text-light">+263 772 388 112</p>
+                      <p className="text-text-light">+263 781 110 655</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <FaEnvelope className="text-accent text-xl" />
-                  <div>
-                    <h3 className="font-bold text-text-light">Email</h3>
-                    <p className="text-text-light">info@tukumusic.africa</p>
+                  <div className="flex items-center justify-center space-x-4">
+                    <FaEnvelope className="text-accent text-xl" />
+                    <div className="text-center">
+                      <h3 className="font-bold text-text-light">Email</h3>
+                      <p className="text-text-light">info@tukumusic.africa</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <FaMapMarkerAlt className="text-accent text-xl" />
-                  <div>
-                    <h3 className="font-bold text-text-light">Location</h3>
-                    <p className="text-text-light">238 Galloway Rd, Norton</p>
+                  <div className="flex items-center justify-center space-x-4">
+                    <FaMapMarkerAlt className="text-accent text-xl" />
+                    <div className="text-center">
+                      <h3 className="font-bold text-text-light">Location</h3>
+                      <p className="text-text-light">238 Galloway Rd, Norton</p>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-6 pt-6 border-t border-white/10">
-                  <h3 className="font-bold text-text-light mb-2">Organization Details</h3>
-                  <p className="text-text-light">Tuku Music & Promotions Oct Ltd</p>
-                  <p className="text-text-light">Owner: Daisy K. Mtukudzi</p>
-                  <p className="text-text-light text-sm">Domain: Olivermtukudzi.com</p>
-                  <p className="text-text-light text-sm italic mt-2">Visual Arts and related activities</p>
+                  <div className="mt-6 pt-6 border-t border-white/10 text-center w-full">
+                    <h3 className="font-bold text-text-light mb-2">Organization Details</h3>
+                    <p className="text-text-light">Tuku Music & Promotions Oct Ltd</p>
+                    <p className="text-text-light">Owner: Daisy K. Mtukudzi</p>
+                    <p className="text-text-light text-sm italic mt-2">Visual Arts and related activities</p>
+                  </div>
                 </div>
               </div>
             </div>

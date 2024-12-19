@@ -86,7 +86,7 @@ const Home = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
-          className="relative h-screen flex items-center justify-center text-center bg-gradient-to-br from-primary via-secondary to-accent"
+          className="relative h-screen flex items-center justify-center text-center bg-gradient-to-br from-primary via-secondary to-accent rounded-3xl mx-4"
         >
           <div className="absolute inset-0 bg-black/30"></div>
           <div className="relative z-10 text-text-light px-4">
@@ -145,7 +145,7 @@ const Home = () => {
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.3, duration: 0.6 }}
-                className={`text-center p-8 rounded-2xl shadow-lg backdrop-blur-sm transform hover:scale-105 transition-all duration-300
+                className={`text-center p-8 rounded-3xl shadow-lg backdrop-blur-sm transform hover:scale-105 transition-all duration-300
                   ${index === 0 ? 'bg-gradient-to-br from-primary/80 to-secondary/80' : 
                     index === 1 ? 'bg-gradient-to-br from-secondary/80 to-accent/80' : 
                     'bg-gradient-to-br from-accent/80 to-primary/80'}`}
@@ -166,7 +166,7 @@ const Home = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-4xl mx-auto text-center bg-gradient-to-br from-primary/90 via-secondary/90 to-accent/90 p-8 rounded-2xl shadow-lg backdrop-blur-sm transform hover:scale-105 transition-all duration-300"
+            className="max-w-4xl mx-auto text-center bg-gradient-to-br from-primary/90 via-secondary/90 to-accent/90 p-8 rounded-3xl shadow-lg backdrop-blur-sm transform hover:scale-105 transition-all duration-300"
           >
             <FaQuoteLeft className="text-white text-4xl mx-auto mb-6 opacity-80" />
             <blockquote className="text-2xl text-white mb-8 font-light italic">
@@ -180,7 +180,7 @@ const Home = () => {
         </section>
 
         {/* Call to Action */}
-        <section className="bg-gradient-to-r from-accent to-primary py-16">
+        <section className="bg-gradient-to-r from-accent to-primary py-16 rounded-3xl mx-4">
           <div className="container mx-auto text-center">
             <motion.div
               initial={{ y: 50, opacity: 0 }}

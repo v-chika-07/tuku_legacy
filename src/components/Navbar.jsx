@@ -21,12 +21,12 @@ const Navbar = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 w-full bg-primary text-text-light z-50"
+      className="fixed top-0 left-0 w-full bg-gradient-to-r from-accent via-secondary to-primary text-white z-50 rounded-bl-3xl rounded-br-3xl"
     >
       <div className="container mx-auto flex justify-between items-center p-4">
         <div className="text-2xl font-bold">
-          <Link to="/" className="text-white hover:text-accent transition-colors">
-            <span className="font-oswald font-bold text-2xl tracking-wider text-text-light hover:text-accent transition-colors">
+          <Link to="/" className="text-white hover:text-white/80 transition-colors">
+            <span className="font-oswald font-bold text-2xl tracking-wider text-white hover:text-white/80 transition-colors">
               TUKU LEGACY
             </span>
           </Link>
@@ -45,7 +45,7 @@ const Navbar = () => {
             <li key={item.name}>
               <Link 
                 to={item.path} 
-                className="text-text-light hover:text-accent transition-colors flex flex-col items-center"
+                className="text-white hover:text-white/80 transition-colors flex flex-col items-center"
               >
                 {item.icon}
                 {item.name}
@@ -60,14 +60,14 @@ const Navbar = () => {
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             transition={{ type: 'spring', stiffness: 300 }}
-            className="fixed top-0 right-0 h-full w-64 bg-primary p-8 md:hidden"
+            className="fixed top-0 right-0 h-full w-64 bg-gradient-to-r from-accent via-secondary to-primary p-8 md:hidden"
           >
             <ul className="space-y-6">
               {navItems.map((item) => (
                 <li key={item.name}>
                   <Link 
                     to={item.path} 
-                    className="block text-text-light hover:text-accent flex items-center gap-3"
+                    className="block text-white hover:text-white/80 flex items-center gap-3"
                     onClick={() => setIsOpen(false)}
                   >
                     {item.icon}

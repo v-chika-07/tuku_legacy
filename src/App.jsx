@@ -10,6 +10,7 @@ import Events from './pages/Events'
 import Registration from './pages/Registration'
 import Contact from './pages/Contact'
 import RegistrationSuccess from './pages/RegistrationSuccess'
+import AudioPlayer from './components/AudioPlayer';
 import './App.css'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="App">
         <Navbar />
+        <AudioPlayer />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
