@@ -12,7 +12,7 @@ const Navbar = () => {
     { name: 'Events', path: '/events', icon: <FaCalendarAlt className="mb-1 mx-auto text-lg" /> },
     { name: 'Music', path: '/music', icon: <FaMusic className="mb-1 mx-auto text-lg" /> },
     { name: 'Merch', path: '/merch', icon: <FaTshirt className="mb-1 mx-auto text-lg" /> },
-    { name: 'OLIFA', path: '/olifa', icon: <FaHandsHelping className="mb-1 mx-auto text-lg" /> },
+    { name: 'OMIFA', path: '/omifa', icon: <FaHandsHelping className="mb-1 mx-auto text-lg" /> },
     { name: 'Contact', path: '/contact', icon: <FaEnvelope className="mb-1 mx-auto text-lg" /> }
   ];
 

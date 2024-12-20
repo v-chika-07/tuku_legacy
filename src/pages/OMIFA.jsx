@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 
-const OLIFA = () => {
+const OMIFA = () => {
   return (
     <div className="relative min-h-screen">
       {/* Content */}
@@ -28,7 +28,7 @@ const OLIFA = () => {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="text-4xl md:text-6xl font-bold mb-6"
             >
-              OLIFA - Oliver Mtukudzi Foundation
+              OMIFA - Oliver Mtukudzi Foundation
             </motion.h1>
             
             <motion.div
@@ -75,4 +75,4 @@ const OLIFA = () => {
   );
 };
 
-export default OLIFA;
+export default OMIFA;

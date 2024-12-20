@@ -11,6 +11,10 @@ import Registration from './pages/Registration'
 import Contact from './pages/Contact'
 import RegistrationSuccess from './pages/RegistrationSuccess'
 import AudioPlayer from './components/AudioPlayer';
+import Admin from './pages/Admin';
+import RegistrationDetails from './pages/RegistrationDetails';
+import MessageDetails from './pages/MessageDetails';
+import Inventory from './pages/Inventory';
 import './App.css'
 
 function App() {
@@ -28,6 +32,10 @@ function App() {
           <Route path="/registration" element={<Registration />} />
           <Route path="/registration-success" element={<RegistrationSuccess />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/registrations" element={<RegistrationDetails />} />
+          <Route path="/admin/messages" element={<MessageDetails />} />
+          <Route path="/admin/inventory" element={<Inventory />} />
           <Route 
             path="/music" 
             element={
@@ -47,10 +55,10 @@ function App() {
             } 
           />
           <Route 
-            path="/olifa" 
+            path="/omifa" 
             element={
               <ComingSoon 
-                title="OLIFA - Oliver Mtukudzi Foundation"
+                title="OMIFA - Oliver Mtukudzi Foundation"
                 description="The Oliver Mtukudzi Foundation is preparing to launch its initiatives supporting young athletic talent in Zimbabwe. Join us in nurturing the next generation of athletes while preserving Tuku's legacy of excellence."
               />
             } 
