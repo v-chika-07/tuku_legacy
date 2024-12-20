@@ -1,5 +1,15 @@
 import { db } from '../config.js';
-import { collection, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { 
+    collection, 
+    addDoc, 
+    updateDoc, 
+    doc, 
+    deleteDoc, 
+    getDocs,
+    query,
+    where,
+    orderBy
+} from 'firebase/firestore';
 
 export const addProduct = async (productData) => {
     try {
@@ -86,6 +96,57 @@ export const deleteProduct = async (productId) => {
         return { success: true };
     } catch (error) {
         console.error('Error deleting product:', error);
+        return { success: false, error };
+    }
+};
+
+export const getProducts = async (category = null) => {
+    try {
+        let productsQuery;
+        if (category) {
+            productsQuery = query(
+                collection(db, 'products'),
+                where('category', '==', category),
+                where('status', '==', 'active'),
+                orderBy('createdAt', 'desc')
+            );
+        } else {
+            productsQuery = query(
+                collection(db, 'products'),
+                where('status', '==', 'active'),
+                orderBy('createdAt', 'desc')
+            );
+        }
+
+        const querySnapshot = await getDocs(productsQuery);
+        const products = [];
+        querySnapshot.forEach((doc) => {
+            products.push({ id: doc.id, ...doc.data() });
+        });
+        return { success: true, products };
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        return { success: false, error };
+    }
+};
+
+export const getFeaturedProducts = async () => {
+    try {
+        const productsQuery = query(
+            collection(db, 'products'),
+            where('featured', '==', true),
+            where('status', '==', 'active'),
+            orderBy('createdAt', 'desc')
+        );
+        
+        const querySnapshot = await getDocs(productsQuery);
+        const products = [];
+        querySnapshot.forEach((doc) => {
+            products.push({ id: doc.id, ...doc.data() });
+        });
+        return { success: true, products };
+    } catch (error) {
+        console.error('Error fetching featured products:', error);
         return { success: false, error };
     }
 };

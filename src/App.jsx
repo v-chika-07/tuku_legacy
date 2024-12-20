@@ -15,6 +15,7 @@ import Admin from './pages/Admin';
 import RegistrationDetails from './pages/RegistrationDetails';
 import MessageDetails from './pages/MessageDetails';
 import Inventory from './pages/Inventory';
+import MarathonMerch from './pages/MarathonMerch';
 import './App.css'
 
 function App() {
@@ -63,6 +64,8 @@ function App() {
               />
             } 
           />
+          <Route path="/coming-soon" element={<ComingSoon />} />
+          <Route path="/marathon-merch" element={<MarathonMerch />} />
         </Routes>
       </div>
     </Router>

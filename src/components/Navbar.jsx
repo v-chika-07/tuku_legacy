@@ -1,61 +1,120 @@
-import React, { useState } from 'react';
-import { FaBars, FaTimes, FaHome, FaInfoCircle, FaCalendarAlt, FaMusic, FaTshirt, FaHandsHelping, FaEnvelope } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { FaBars, FaTimes, FaHome, FaInfoCircle, FaCalendarAlt, FaMusic, FaTshirt, FaHandsHelping, FaEnvelope } from 'react-icons/fa';
+import MerchDropdown from './MerchDropdown';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [nav, setNav] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [showMerchDropdown, setShowMerchDropdown] = useState(false);
+  const location = useLocation();
 
-  const navItems = [
-    { name: 'Home', path: '/', icon: <FaHome className="mb-1 mx-auto text-lg" /> },
-    { name: 'About', path: '/about', icon: <FaInfoCircle className="mb-1 mx-auto text-lg" /> },
-    { name: 'Events', path: '/events', icon: <FaCalendarAlt className="mb-1 mx-auto text-lg" /> },
-    { name: 'Music', path: '/music', icon: <FaMusic className="mb-1 mx-auto text-lg" /> },
-    { name: 'Merch', path: '/merch', icon: <FaTshirt className="mb-1 mx-auto text-lg" /> },
-    { name: 'OMIFA', path: '/omifa', icon: <FaHandsHelping className="mb-1 mx-auto text-lg" /> },
-    { name: 'Contact', path: '/contact', icon: <FaEnvelope className="mb-1 mx-auto text-lg" /> }
+  const links = [
+    {
+      id: 1,
+      link: '/',
+      text: 'HOME',
+      icon: <FaHome className="mb-1 mx-auto text-lg" />
+    },
+    {
+      id: 2,
+      link: '/about',
+      text: 'ABOUT',
+      icon: <FaInfoCircle className="mb-1 mx-auto text-lg" />
+    },
+    {
+      id: 3,
+      link: '/events',
+      text: 'EVENTS',
+      icon: <FaCalendarAlt className="mb-1 mx-auto text-lg" />
+    },
+    {
+      id: 4,
+      link: '/merch',
+      text: 'MERCH',
+      icon: <FaTshirt className="mb-1 mx-auto text-lg" />,
+      hasDropdown: true
+    },
+    {
+      id: 5,
+      link: '/omifa',
+      text: 'OMIFA',
+      icon: <FaHandsHelping className="mb-1 mx-auto text-lg" />
+    },
+    {
+      id: 6,
+      link: '/contact',
+      text: 'CONTACT',
+      icon: <FaEnvelope className="mb-1 mx-auto text-lg" />
+    }
   ];
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY >= 80) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   return (
     <motion.nav 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 w-full bg-gradient-to-r from-accent via-secondary to-primary text-white z-50 rounded-bl-3xl rounded-br-3xl"
+      className={`fixed top-0 left-0 w-full bg-gradient-to-r from-accent via-secondary to-primary text-white z-50 rounded-bl-3xl rounded-br-3xl ${isScrolled ? 'bg-black/90 backdrop-blur-sm' : 'bg-transparent'}`}
     >
       <div className="container mx-auto flex justify-between items-center p-4">
-        <div className="text-2xl font-bold">
-          <Link to="/" className="text-white hover:text-white/80 transition-colors">
-            <span className="font-oswald font-bold text-2xl tracking-wider text-white hover:text-white/80 transition-colors">
-              TUKU LEGACY
-            </span>
+        <div>
+          <Link to="/">
+            <h1 className='text-3xl font-signature ml-2 text-white hover:text-white/80 transition-colors'>TUKU LEGACY</h1>
           </Link>
         </div>
 
         {/* Mobile Menu Toggle */}
         <div className="md:hidden">
-          <button onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <FaTimes /> : <FaBars />}
+          <button onClick={() => setNav(!nav)}>
+            {nav ? <FaTimes /> : <FaBars />}
           </button>
         </div>
 
         {/* Desktop Navigation */}
         <ul className="hidden md:flex space-x-6">
-          {navItems.map((item) => (
-            <li key={item.name}>
+          {links.map(({ id, link, text, icon, hasDropdown }) => (
+            <li
+              key={id}
+              className='relative px-4 cursor-pointer capitalize font-medium text-white hover:scale-105 duration-200'
+              onMouseEnter={() => hasDropdown && setShowMerchDropdown(true)}
+              onMouseLeave={() => hasDropdown && setShowMerchDropdown(false)}
+            >
               <Link 
-                to={item.path} 
-                className="text-white hover:text-white/80 transition-colors flex flex-col items-center"
+                to={link} 
+                className={`text-white hover:text-white/80 transition-colors flex flex-col items-center ${location.pathname === link ? 'text-accent' : ''}`}
               >
-                {item.icon}
-                {item.name}
+                {icon}
+                {text}
               </Link>
+              {hasDropdown && (
+                <MerchDropdown 
+                  isHovered={showMerchDropdown} 
+                  parentPath={link}
+                />
+              )}
             </li>
           ))}
         </ul>
 
         {/* Mobile Navigation */}
-        {isOpen && (
+        {nav && (
           <motion.div 
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -63,15 +122,15 @@ const Navbar = () => {
             className="fixed top-0 right-0 h-full w-64 bg-gradient-to-r from-accent via-secondary to-primary p-8 md:hidden"
           >
             <ul className="space-y-6">
-              {navItems.map((item) => (
-                <li key={item.name}>
+              {links.map(({ id, link, text, icon }) => (
+                <li key={id}>
                   <Link 
-                    to={item.path} 
+                    to={link} 
                     className="block text-white hover:text-white/80 flex items-center gap-3"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => setNav(false)}
                   >
-                    {item.icon}
-                    {item.name}
+                    {icon}
+                    {text}
                   </Link>
                 </li>
               ))}
