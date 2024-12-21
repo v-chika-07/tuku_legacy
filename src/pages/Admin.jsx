@@ -10,6 +10,7 @@ const Admin = () => {
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [registrationCount, setRegistrationCount] = useState(0);
   const [productCount, setProductCount] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
 
   useEffect(() => {
     // Messages Listener
@@ -38,10 +39,19 @@ const Admin = () => {
       console.error("Error fetching products:", error);
     });
 
+    // Orders Listener
+    const ordersQuery = query(collection(db, 'orders'));
+    const unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
+      setOrderCount(snapshot.size);
+    }, (error) => {
+      console.error("Error fetching orders:", error);
+    });
+
     return () => {
       unsubscribeMessages();
       unsubscribeRegistrations();
       unsubscribeProducts();
+      unsubscribeOrders();
     };
   }, []);
 
@@ -126,17 +136,17 @@ const Admin = () => {
               Track and manage merchandise orders
             </p>
             <div className="mt-4 text-3xl font-bold">
-              0
+              {orderCount}
             </div>
             <p className="text-white/60 text-sm mb-4">
-              Pending orders
+              Total orders
             </p>
-            <button 
-              className="inline-block px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white cursor-not-allowed opacity-50"
-              disabled
+            <Link 
+              to="/order-details" 
+              className="inline-block px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white"
             >
               View Details
-            </button>
+            </Link>
           </motion.div>
 
           {/* Registrations Section */}

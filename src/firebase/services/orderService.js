@@ -9,9 +9,9 @@ export const createOrder = async (userId, orderData) => {
     const orderRef = await addDoc(collection(db, ORDERS_COLLECTION), {
       userId,
       ...orderData,
-      status: 'completed',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      status: 'Pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
 
     // Clear the cart after successful order

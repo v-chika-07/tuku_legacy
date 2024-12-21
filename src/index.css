@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .border-gradient {
+    border: 2px solid transparent;
+    border-radius: 1rem;
+    background-image: 
+      linear-gradient(white, white), 
+      linear-gradient(to bottom right, #FF6B6B, #4ECDC4, #45B7D1);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

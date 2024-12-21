@@ -17,6 +17,7 @@ import MessageDetails from './pages/MessageDetails';
 import Inventory from './pages/Inventory';
 import MarathonMerch from './pages/MarathonMerch';
 import Cart from './pages/Cart';
+import OrderDetails from './pages/OrderDetails';
 import FloatingCart from './components/FloatingCart';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -74,6 +75,7 @@ function App() {
               <Route path="/coming-soon" element={<ComingSoon />} />
               <Route path="/marathon-merch" element={<MarathonMerch />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/order-details" element={<OrderDetails />} />
             </Routes>
           </div>
         </CartProvider>
