@@ -83,6 +83,33 @@ const Cart = () => {
     // navigate(`/order-confirmation/${orderId}`);
   };
 
+  const generatePaynowLink = () => {
+    // Calculate total using the method
+    const total = calculateTotal();
+    
+    // Debug: log cart and total
+    console.log('Cart:', cart);
+    console.log('Total:', total);
+    
+    // Use the merchant ID from the previous example
+    const merchantId = '19725';
+    
+    // Format total to two decimal places
+    const amount = total.toFixed(2);
+    
+    // Debug: log amount
+    console.log('Amount for Paynow:', amount);
+    
+    // Construct the query string
+    const queryParams = `id=${merchantId}&amount=${amount}&amount_quantity=${amount}&l=0`;
+    
+    // Base64 encode the query string
+    const base64EncodedParams = btoa(queryParams);
+    
+    // Construct the full Paynow URL
+    return `https://www.paynow.co.zw/Payment/BillPaymentLink/?q=${base64EncodedParams}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen pt-24 pb-12 flex items-center justify-center">
@@ -180,19 +207,29 @@ const Cart = () => {
                       onSuccess={handleCheckoutSuccess}
                     />
                   ) : (
-                    <button
-                      onClick={() => setShowPayPal(true)}
-                      className="w-1/2 bg-black text-white py-3 rounded-full hover:bg-black/90 transition-all duration-300 font-medium"
-                    >
-                      Proceed to Checkout
-                    </button>
+                    <>
+                      <button
+                        onClick={() => setShowPayPal(true)}
+                        className="w-1/2 bg-black text-white py-3 rounded-full hover:bg-black/90 transition-all duration-300 font-medium"
+                      >
+                        Proceed to Checkout
+                      </button>
+                      <a 
+                        href={generatePaynowLink()}
+                        target='_blank' 
+                        rel="noopener noreferrer"
+                        className="w-1/2 bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition-all duration-300 font-medium text-center inline-block"
+                      >
+                        PayNow Checkout
+                      </a>
+                      <button
+                        onClick={() => navigate('/marathon-merch')}
+                        className="w-1/2 bg-white text-black py-3 rounded-full border border-black hover:bg-gray-50 transition-all duration-300 font-medium"
+                      >
+                        Continue Shopping
+                      </button>
+                    </>
                   )}
-                  <button
-                    onClick={() => navigate('/marathon-merch')}
-                    className="w-1/2 bg-white text-black py-3 rounded-full border border-black hover:bg-gray-50 transition-all duration-300 font-medium"
-                  >
-                    Continue Shopping
-                  </button>
                 </div>
               </div>
             </>
