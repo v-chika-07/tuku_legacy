@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaBars, FaTimes, FaHome, FaInfoCircle, FaCalendarAlt, FaMusic, FaTshirt, FaHandsHelping, FaEnvelope } from 'react-icons/fa';
+import { FaBars, FaTimes, FaHome, FaInfoCircle, FaCalendarAlt, FaMusic, FaTshirt, FaHandsHelping, FaEnvelope, FaSignOutAlt } from 'react-icons/fa';
 import MerchDropdown from './MerchDropdown';
+import { useAuth } from '../contexts/AuthContext';
+import { logoutUser } from '../firebase/authService';
+import { toast } from 'react-toastify';
 
 const Navbar = () => {
+  const { isAuthenticated } = useAuth();
   const [nav, setNav] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showMerchDropdown, setShowMerchDropdown] = useState(false);
@@ -88,7 +92,7 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <ul className="hidden md:flex space-x-6">
+        <ul className="hidden md:flex space-x-6 items-center">
           {links.map(({ id, link, text, icon, hasDropdown }) => (
             <li
               key={id}
@@ -111,6 +115,26 @@ const Navbar = () => {
               )}
             </li>
           ))}
+          {isAuthenticated && (
+            <li
+              className='relative px-4 cursor-pointer capitalize font-medium text-white hover:scale-105 duration-200'
+            >
+              <div 
+                onClick={async () => {
+                  const result = await logoutUser();
+                  if (result.error) {
+                    toast.error('Failed to log out');
+                  } else {
+                    toast.success('Logged out successfully');
+                  }
+                }}
+                className={`text-white hover:text-white/80 transition-colors flex flex-col items-center cursor-pointer`}
+              >
+                <FaSignOutAlt className="mb-1 mx-auto text-lg" />
+                LOGOUT
+              </div>
+            </li>
+          )}
         </ul>
 
         {/* Mobile Navigation */}
@@ -134,6 +158,25 @@ const Navbar = () => {
                   </Link>
                 </li>
               ))}
+              {isAuthenticated && (
+                <li>
+                  <div 
+                    onClick={async () => {
+                      const result = await logoutUser();
+                      if (result.error) {
+                        toast.error('Failed to log out');
+                      } else {
+                        toast.success('Logged out successfully');
+                        setNav(false);
+                      }
+                    }}
+                    className="block text-white hover:text-white/80 flex items-center gap-3 cursor-pointer"
+                  >
+                    <FaSignOutAlt className="text-lg" />
+                    LOGOUT
+                  </div>
+                </li>
+              )}
             </ul>
           </motion.div>
         )}

@@ -1,14 +1,105 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaShoppingCart } from 'react-icons/fa';
-import { getProducts } from '../firebase/services/productService';
 import { toast } from 'react-toastify';
+import { getProducts } from '../firebase/services/productService';
+import { addToCart } from '../firebase/services/cartService';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
+import LoginModal from '../components/LoginModal';
+
+const colorClasses = {
+  // Reds
+  red: 'bg-red-500',
+  crimson: 'bg-red-600',
+  maroon: 'bg-red-800',
+  ruby: 'bg-red-700',
+  scarlet: 'bg-red-400',
+  
+  // Blues
+  blue: 'bg-blue-500',
+  navy: 'bg-blue-900',
+  skyblue: 'bg-sky-400',
+  lightblue: 'bg-blue-300',
+  royalblue: 'bg-blue-700',
+  azure: 'bg-sky-500',
+  cobalt: 'bg-blue-600',
+  turquoise: 'bg-cyan-400',
+  
+  // Greens
+  green: 'bg-green-500',
+  emerald: 'bg-emerald-500',
+  sage: 'bg-green-300',
+  olive: 'bg-olive-600',
+  lime: 'bg-lime-500',
+  forest: 'bg-green-800',
+  mint: 'bg-green-200',
+  
+  // Yellows
+  yellow: 'bg-yellow-400',
+  gold: 'bg-yellow-500',
+  amber: 'bg-amber-500',
+  khaki: 'bg-yellow-200',
+  
+  // Oranges
+  orange: 'bg-orange-500',
+  coral: 'bg-orange-400',
+  peach: 'bg-orange-200',
+  tangerine: 'bg-orange-600',
+  
+  // Purples
+  purple: 'bg-purple-500',
+  violet: 'bg-violet-500',
+  lavender: 'bg-purple-300',
+  indigo: 'bg-indigo-500',
+  plum: 'bg-purple-600',
+  magenta: 'bg-fuchsia-500',
+  
+  // Browns
+  brown: 'bg-amber-800',
+  chocolate: 'bg-amber-900',
+  tan: 'bg-amber-200',
+  beige: 'bg-amber-100',
+  
+  // Grays
+  gray: 'bg-gray-500',
+  silver: 'bg-gray-300',
+  charcoal: 'bg-gray-700',
+  slate: 'bg-slate-500',
+  
+  // Pinks
+  pink: 'bg-pink-500',
+  rose: 'bg-rose-500',
+  hotpink: 'bg-pink-600',
+  salmon: 'bg-rose-300',
+  
+  // Teals
+  teal: 'bg-teal-500',
+  aqua: 'bg-cyan-500',
+  cyan: 'bg-cyan-400',
+  
+  // Neutrals
+  white: 'bg-white',
+  black: 'bg-black',
+  ivory: 'bg-neutral-50',
+  cream: 'bg-neutral-100',
+  
+  // Additional Fashion Colors
+  mauve: 'bg-purple-200',
+  burgundy: 'bg-red-900',
+  taupe: 'bg-neutral-300',
+  sienna: 'bg-orange-900'
+};
 
 const MarathonMerch = () => {
+  const { isAuthenticated, user } = useAuth();
+  const { updateCartCount } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedColors, setSelectedColors] = useState({});
   const [selectedSizes, setSelectedSizes] = useState({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -75,31 +166,44 @@ const MarathonMerch = () => {
     }));
   };
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (product) => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
     const selectedColor = selectedColors[product.id];
     const selectedSize = selectedSizes[product.id];
-    
+
     if (!selectedColor || !selectedSize) {
       toast.error('Please select both color and size');
       return;
     }
 
-    const variant = product.variants.find(
-      v => v.color === selectedColor && v.size === selectedSize
-    );
+    const cartItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      color: selectedColor,
+      size: selectedSize,
+      quantity: 1,
+      image: product.images[selectedColor]
+    };
 
-    if (!variant) {
-      toast.error('Selected combination is not available');
-      return;
+    const result = await addToCart(user.uid, cartItem);
+    if (result.success) {
+      toast.success('Added to cart!');
+      updateCartCount();
+    } else {
+      toast.error('Failed to add to cart');
     }
+  };
 
-    if (variant.quantity <= 0) {
-      toast.error('This item is out of stock');
-      return;
+  const handleLoginSuccess = () => {
+    if (pendingProduct) {
+      handleAddToCart(pendingProduct);
+      setPendingProduct(null);
     }
-
-    // Add to cart logic here
-    toast.success('Added to cart successfully');
   };
 
   if (loading) {
@@ -166,7 +270,10 @@ const MarathonMerch = () => {
                             onClick={() => handleColorSelect(product.id, color)}
                             className={`w-6 h-6 rounded-full border-2 ${
                               selectedColor === color ? 'border-white scale-110' : 'border-transparent'
-                            } bg-${color}-500 transition-all duration-200 hover:scale-110`}
+                            } ${colorClasses[color] || 'bg-black'} transition-all duration-200 hover:scale-110`}
+                            style={{
+                              backgroundColor: !colorClasses[color] ? color : undefined
+                            }}
                             aria-label={`Select ${color} color`}
                           />
                         ))}
@@ -211,12 +318,12 @@ const MarathonMerch = () => {
                       </div>
 
                       {/* Add to Cart Button */}
-                      <div className="mt-6 flex justify-center">
+                      <div className="mt-18 flex justify-center">
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="w-[70%] bg-gradient-to-r from-accent to-secondary px-4 py-2 rounded-full flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity"
+                          className="w-[70%] bg-white text-black px-4 py-2 rounded-full flex items-center justify-center space-x-2 hover:bg-white/90 transition-all duration-300 font-medium"
                         >
-                          <FaShoppingCart />
+                          <FaShoppingCart className="text-black" />
                           <span>Add to Cart</span>
                         </button>
                       </div>
@@ -235,6 +342,16 @@ const MarathonMerch = () => {
           More products coming soon! Pre-orders will be available closer to the event date.
         </p>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false);
+          setPendingProduct(null);
+        }}
+        onSuccess={handleLoginSuccess}
+      />
     </div>
   );
 };
