@@ -1,78 +1,48 @@
 import { toast } from 'react-toastify';
+import { processPaynowNotification, handlePaynowReturn } from './paynowNotificationService';
+import { getFirestore, collection, addDoc, doc, onSnapshot } from 'firebase/firestore';
 
-const INTEGRATION_ID = import.meta.env.VITE_PAYNOW_INTEGRATION_ID;
+// Paynow configuration
+const MERCHANT_ID = import.meta.env.VITE_PAYNOW_INTEGRATION_ID;
 const INTEGRATION_KEY = import.meta.env.VITE_PAYNOW_INTEGRATION_KEY;
-const RESULT_URL = import.meta.env.VITE_PAYNOW_RESULT_URL;
 const RETURN_URL = import.meta.env.VITE_PAYNOW_RETURN_URL;
+const RESULT_URL = import.meta.env.VITE_PAYNOW_RESULT_URL;
+const NOTIFICATION_URL = 'https://www.zunzorunningclub.com/paynow/notification';
 
-const PAYNOW_API_URL = 'https://www.paynow.co.zw/interface/initiatetransaction';
-
-export const initializePaynowTransaction = async (cart, userEmail) => {
+export const initializePaynowTransaction = async (cart, userEmail, user) => {
   try {
-    // Validate cart and user email
-    if (!cart || !cart.items || cart.items.length === 0) {
-      toast.error('Cart is empty');
-      return { success: false, error: 'Empty cart' };
-    }
-
-    // Prepare transaction details
-    const transactionRef = `ZunzoOrder_${Date.now()}`;
-    
     // Calculate total
     const total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    // Prepare form data
-    const formData = new URLSearchParams({
-      id: INTEGRATION_ID,
-      reference: transactionRef,
-      amount: total.toFixed(2),
-      email: userEmail,
-      returnurl: RETURN_URL,
-      resulturl: RESULT_URL,
-      status: 'Pending'
-    });
+    // Generate transaction reference
+    const transactionRef = `ZunzoOrder_${Date.now()}`;
 
-    // Add items to description
-    const itemsDescription = cart.items
-      .map(item => `${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`)
-      .join(', ');
-    formData.append('description', itemsDescription);
-
-    // Send request to Paynow
-    const response = await fetch(PAYNOW_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Bearer ${INTEGRATION_KEY}`
-      },
-      body: formData
-    });
-
-    // Check response
-    if (!response.ok) {
-      const errorText = await response.text();
-      toast.error('Paynow transaction failed');
-      console.error('Paynow error:', errorText);
-      return { 
-        success: false, 
-        error: errorText || 'Failed to initialize transaction' 
-      };
+    // Create pending order first
+    const pendingOrderResult = await createPendingPaynowOrder(cart, user, transactionRef);
+    
+    if (!pendingOrderResult.success) {
+      throw new Error('Failed to create pending order');
     }
 
-    // Parse response
-    const responseText = await response.text();
-    const parsedResponse = parsePaynowResponse(responseText);
+    // Construct Paynow payment link parameters
+    const paymentParams = new URLSearchParams({
+      id: MERCHANT_ID,
+      amount: total.toFixed(2),
+      amount_quantity: '0.00',
+      l: '1' // Likely a language or additional parameter
+    });
+
+    // Generate Paynow payment link
+    const paynowPaymentLink = `https://www.paynow.co.zw/Payment/BillPaymentLink/?q=${btoa(paymentParams.toString())}`;
 
     return {
       success: true,
-      redirectUrl: parsedResponse.redirectUrl,
-      pollUrl: parsedResponse.pollUrl,
+      url: paynowPaymentLink,
+      orderId: pendingOrderResult.orderId,
       transactionReference: transactionRef
     };
-
   } catch (error) {
-    console.error('Paynow transaction error', error);
-    toast.error('An error occurred during checkout');
+    console.error('Paynow Transaction Initialization Error:', error);
     return {
       success: false,
       error: error.message
@@ -80,50 +50,75 @@ export const initializePaynowTransaction = async (cart, userEmail) => {
   }
 };
 
-// Helper function to parse Paynow response
-const parsePaynowResponse = (responseText) => {
-  // This is a mock implementation. You'll need to adjust based on actual Paynow response format
-  const parts = responseText.split('&');
-  const responseMap = {};
-  parts.forEach(part => {
-    const [key, value] = part.split('=');
-    responseMap[key] = decodeURIComponent(value);
-  });
-
-  return {
-    success: responseMap.status === 'Ok',
-    redirectUrl: responseMap.browserurl,
-    pollUrl: responseMap.pollurl,
-    error: responseMap.error
-  };
-};
-
-export const checkPaynowTransactionStatus = async (pollUrl) => {
+export const createPendingPaynowOrder = async (cart, user, transactionRef) => {
   try {
-    const response = await fetch(pollUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${INTEGRATION_KEY}`
-      }
-    });
+    const db = getFirestore();
+    const ordersCollection = collection(db, 'orders');
 
-    if (!response.ok) {
-      throw new Error('Failed to check transaction status');
-    }
+    // Calculate total
+    const total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    const statusText = await response.text();
-    const status = parsePaynowResponse(statusText);
-
-    return {
-      paid: status.success,
-      status: status
+    // Prepare order data
+    const orderData = {
+      userId: user.uid,
+      transactionReference: transactionRef,
+      items: cart.items,
+      total: total,
+      status: 'Pending', // Initial status
+      paymentMethod: 'Paynow',
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
 
-  } catch (error) {
-    console.error('Error checking Paynow transaction status', error);
+    // Add order to Firestore
+    const orderRef = await addDoc(ordersCollection, orderData);
+
     return {
-      paid: false,
+      success: true,
+      orderId: orderRef.id,
+      transactionReference: transactionRef
+    };
+  } catch (error) {
+    console.error('Error creating pending order:', error);
+    toast.error('Failed to create order');
+    return {
+      success: false,
       error: error.message
     };
   }
+};
+
+export const listenToOrderStatus = (orderId, callback) => {
+  const db = getFirestore();
+  const orderRef = doc(db, 'orders', orderId);
+
+  // Set up real-time listener
+  const unsubscribe = onSnapshot(orderRef, (doc) => {
+    if (doc.exists()) {
+      const orderData = doc.data();
+      
+      // Trigger callback with order status
+      callback({
+        status: orderData.status,
+        transactionReference: orderData.transactionReference
+      });
+
+      // Automatically unsubscribe if order is in final state
+      if (['Paid', 'Failed'].includes(orderData.status)) {
+        unsubscribe();
+      }
+    }
+  }, (error) => {
+    console.error('Error listening to order status:', error);
+    toast.error('Error tracking order status');
+    callback({ status: 'Error', error: error.message });
+  });
+
+  return unsubscribe;
+};
+
+// Expose notification and return handlers for backend integration
+export { 
+  processPaynowNotification, 
+  handlePaynowReturn 
 };

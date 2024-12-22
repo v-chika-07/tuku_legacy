@@ -8,13 +8,19 @@ import { getCart, updateCartItemQuantity, removeFromCart } from '../firebase/ser
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import PayPalCheckout from '../components/PayPalCheckout';
 import { toast } from 'react-toastify';
+import { 
+  initializePaynowTransaction, 
+  createPendingPaynowOrder, 
+  listenToOrderStatus 
+} from '../services/paynowService';
 
 const Cart = () => {
   const [cart, setCart] = useState({ items: [] });
   const [loading, setLoading] = useState(true);
   const [showPayPal, setShowPayPal] = useState(false);
+  const [paynowLoading, setPaynowLoading] = useState(false);
   const { user } = useAuth();
-  const { updateCartCount } = useCart();
+  const { updateCartCount, clearCart } = useCart();
   const navigate = useNavigate();
 
   const fetchCart = async () => {
@@ -83,31 +89,79 @@ const Cart = () => {
     // navigate(`/order-confirmation/${orderId}`);
   };
 
-  const generatePaynowLink = () => {
-    // Calculate total using the method
-    const total = calculateTotal();
-    
-    // Debug: log cart and total
-    console.log('Cart:', cart);
-    console.log('Total:', total);
-    
-    // Use the merchant ID from the previous example
-    const merchantId = '19725';
-    
-    // Format total to two decimal places
-    const amount = total.toFixed(2);
-    
-    // Debug: log amount
-    console.log('Amount for Paynow:', amount);
-    
-    // Construct the query string
-    const queryParams = `id=${merchantId}&amount=${amount}&amount_quantity=${amount}&l=0`;
-    
-    // Base64 encode the query string
-    const base64EncodedParams = btoa(queryParams);
-    
-    // Construct the full Paynow URL
-    return `https://www.paynow.co.zw/Payment/BillPaymentLink/?q=${base64EncodedParams}`;
+  const handlePaynowCheckout = async () => {
+    if (!user) {
+      toast.error('Please log in to proceed with checkout');
+      return;
+    }
+
+    // Start loading state
+    setPaynowLoading(true);
+
+    try {
+      // Initialize Paynow transaction
+      const transactionResult = await initializePaynowTransaction(cart, user.email, user);
+      
+      if (transactionResult.success) {
+        // Open popup window
+        const popupWidth = 600;
+        const popupHeight = 700;
+        const left = (window.screen.width / 2) - (popupWidth / 2);
+        const top = (window.screen.height / 2) - (popupHeight / 2);
+
+        const paymentPopup = window.open(
+          transactionResult.url, 
+          'PayNowPayment',
+          `width=${popupWidth},height=${popupHeight},left=${left},top=${top},scrollbars=yes`
+        );
+
+        // Set up order status listener
+        const unsubscribe = listenToOrderStatus(
+          transactionResult.orderId, 
+          ({ status, transactionReference }) => {
+            switch(status) {
+              case 'Paid':
+                toast.success('Payment successful!');
+                clearCart();
+                navigate('/order-confirmation', { 
+                  state: { 
+                    orderId: transactionResult.orderId, 
+                    transactionReference 
+                  } 
+                });
+                break;
+              case 'Failed':
+                toast.error('Payment failed. Please try again.');
+                break;
+              case 'Pending':
+                toast.info('Payment is being processed...');
+                break;
+            }
+
+            // Stop loading once we have a final status
+            if (['Paid', 'Failed'].includes(status)) {
+              setPaynowLoading(false);
+            }
+          }
+        );
+
+        // Watch for popup closure
+        const popupInterval = setInterval(() => {
+          if (paymentPopup.closed) {
+            clearInterval(popupInterval);
+            unsubscribe(); // Stop listening if popup is closed
+            setPaynowLoading(false);
+            toast.info('Payment window closed. Please check your order status.');
+          }
+        }, 500);
+      } else {
+        throw new Error(transactionResult.error || 'Failed to initialize Paynow transaction');
+      }
+    } catch (error) {
+      console.error('Paynow Checkout Error:', error);
+      toast.error('An error occurred during Paynow checkout');
+      setPaynowLoading(false);
+    }
   };
 
   if (loading) {
@@ -214,14 +268,13 @@ const Cart = () => {
                       >
                         Proceed to Checkout
                       </button>
-                      <a 
-                        href={generatePaynowLink()}
-                        target='_blank' 
-                        rel="noopener noreferrer"
-                        className="w-1/2 bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition-all duration-300 font-medium text-center inline-block"
+                      <button
+                        onClick={handlePaynowCheckout}
+                        disabled={paynowLoading || cart.items.length === 0}
+                        className="w-1/2 bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition-all duration-300 font-medium disabled:opacity-50"
                       >
-                        PayNow Checkout
-                      </a>
+                        {paynowLoading ? 'Processing...' : 'PayNow Checkout'}
+                      </button>
                       <button
                         onClick={() => navigate('/marathon-merch')}
                         className="w-1/2 bg-white text-black py-3 rounded-full border border-black hover:bg-gray-50 transition-all duration-300 font-medium"
