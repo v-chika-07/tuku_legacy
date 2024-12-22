@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios');
 
 // Safely load Firebase credentials
 const serviceAccountConfig = {
@@ -58,133 +59,120 @@ app.use((req, res, next) => {
   next();
 });
 
-// Enhanced Hash Verification
+// Enhanced Hash Verification Function
 function verifyPaynowHash(data, suppliedHash) {
   try {
-    const { Hash, ...dataToHash } = data;
-
-    // Consistent key sorting
-    const sortedKeys = Object.keys(dataToHash)
-      .filter(key => dataToHash[key] !== undefined)
-      .sort();
+    // Sort keys to ensure consistent hash generation
+    const sortedKeys = Object.keys(data).sort();
     
-    // Concatenate values
-    const hashString = sortedKeys
-      .map(key => String(dataToHash[key]))
-      .join('') + PAYNOW_INTEGRATION_KEY;
+    // Create hash string by concatenating values
+    let hashString = '';
+    sortedKeys.forEach(key => {
+      if (key !== 'Hash') {
+        hashString += data[key];
+      }
+    });
+    
+    // Add integration key
+    hashString += PAYNOW_INTEGRATION_KEY;
 
     // Generate SHA512 hash
     const generatedHash = crypto
       .createHash('sha512')
-      .update(hashString, 'utf8')
+      .update(hashString)
       .digest('hex')
       .toUpperCase();
 
+    // Compare hashes
     return generatedHash === suppliedHash;
   } catch (error) {
-    console.error('Hash Verification Error:', error);
+    console.error('Hash verification error:', error);
     return false;
   }
 }
 
-// Comprehensive Notification Handler
+// Enhanced Paynow Webhook Endpoint
 app.post('/paynow/notification', async (req, res) => {
   try {
-    console.log('==== FULL PAYNOW NOTIFICATION RECEIVED ====');
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
-    console.log('Query Parameters:', JSON.stringify(req.query, null, 2));
-    console.log('Body (Form-Urlencoded):', JSON.stringify(req.body, null, 2));
+    console.log('==== PAYNOW NOTIFICATION RECEIVED ====');
     
-    // Try to parse different types of incoming data
-    const postData = {
-      ...req.query,
-      ...req.body
+    // Extract all payment data
+    const paymentData = req.body;
+    console.log('Raw Payment Data:', paymentData);
+
+    // Verify hash (critical security step)
+    const verificationResult = verifyPaynowHash(paymentData, paymentData.Hash);
+    if (!verificationResult) {
+      console.error('Hash verification failed');
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'Invalid payment notification' 
+      });
+    }
+
+    // Prepare normalized payment information
+    const normalizedPaymentInfo = {
+      reference: paymentData.Paynow_Reference,
+      customerName: decodeURIComponent(paymentData.Customer_Name),
+      customerEmail: decodeURIComponent(paymentData.Customer_Email),
+      customerPhone: paymentData.Customer_Phone,
+      transactionAmount: parseFloat(paymentData.Transaction_Amount),
+      amountPaid: parseFloat(paymentData.Amount_Paid),
+      status: 'completed'
     };
 
-    console.log('Parsed Notification Data:', JSON.stringify(postData, null, 2));
-
-    // Validate required fields with more flexible matching
-    const requiredFields = [
-      'Paynow_Reference', 
-      'Transaction_Amount', 
-      'Amount_Paid', 
-      'Hash'
-    ];
-
-    const missingFields = requiredFields.filter(field => 
-      !postData[field] && 
-      !postData[field.toLowerCase()] && 
-      !postData[field.toUpperCase()]
-    );
-
-    if (missingFields.length > 0) {
-      console.warn('Missing required fields:', missingFields);
-      return res.status(400).json({ 
-        success: false, 
-        message: `Missing required fields: ${missingFields.join(', ')}`,
-        receivedData: postData
-      });
-    }
-
-    // Case-insensitive field matching
-    const normalizedData = Object.keys(postData).reduce((acc, key) => {
-      acc[key.toLowerCase()] = postData[key];
-      return acc;
-    }, {});
-
-    // Determine Payment Status
-    const paymentStatus = parseFloat(normalizedData['amount_paid']) >= parseFloat(normalizedData['transaction_amount']) 
-      ? 'Paid' 
-      : 'Partially Paid';
-
-    const db = admin.firestore();
-    const ordersRef = db.collection('orders');
-
-    // Find Matching Order with case-insensitive search
-    const orderSnapshot = await ordersRef
-      .where('transactionReference', '==', normalizedData['paynow_reference'])
-      .limit(1)
-      .get();
-
-    if (orderSnapshot.empty) {
-      console.warn('No matching order found for reference:', normalizedData['paynow_reference']);
-      return res.status(404).json({ 
-        success: false, 
-        message: 'No matching order found',
-        reference: normalizedData['paynow_reference']
-      });
-    }
-
-    // Update Order
-    const orderDoc = orderSnapshot.docs[0];
-    await orderDoc.ref.update({
-      status: paymentStatus,
-      paynowDetails: {
-        transactionAmount: normalizedData['transaction_amount'],
-        amountPaid: normalizedData['amount_paid'],
-        customerEmail: normalizedData['customer_email'] || '',
-        customerName: normalizedData['customer_name'] || ''
-      },
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    // Update Firestore document
+    const orderRef = admin.firestore().collection('orders').doc(normalizedPaymentInfo.reference);
+    await orderRef.update({
+      paymentStatus: 'completed',
+      paymentDetails: normalizedPaymentInfo
     });
 
-    console.log(`Order ${orderDoc.id} updated with status: ${paymentStatus}`);
+    // Optional: Send real-time update to frontend via Firebase
+    await admin.firestore().collection('paymentNotifications').add({
+      ...normalizedPaymentInfo,
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
 
-    // Respond to Paynow
+    // Respond to PayNow
     res.status(200).json({ 
-      success: true, 
-      message: `Order updated with status: ${paymentStatus}` 
+      status: 'success', 
+      message: 'Payment notification processed' 
     });
 
   } catch (error) {
     console.error('Paynow Webhook Error:', error);
     res.status(500).json({ 
-      success: false, 
-      message: 'Internal server error',
-      error: error.message 
+      status: 'error', 
+      message: 'Internal server error processing payment' 
     });
   }
 });
+
+// Real-time listener for payment notifications
+function setupPaymentNotificationListener() {
+  const db = admin.firestore();
+  const notificationsRef = db.collection('paymentNotifications');
+
+  // Create a real-time listener
+  notificationsRef
+    .where('status', '==', 'completed')
+    .onSnapshot((snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const paymentData = change.doc.data();
+          
+          // Broadcast payment notification (you could use Socket.IO or similar)
+          console.log('New Payment Notification:', paymentData);
+        }
+      });
+    }, (error) => {
+      console.error('Payment notification listener error:', error);
+    });
+}
+
+// Call this when your server starts
+setupPaymentNotificationListener();
 
 // Local testing route
 if (process.env.NODE_ENV === 'development') {
@@ -205,10 +193,29 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
+// Add a root route handler
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Zunzo Running Club Webhook Server',
+    status: 'running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Add a health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Start server
-const PORT = process.env.PORT || 3009;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Paynow Webhook Server running on port ${PORT}`);
+  console.log(`Webhook server running on port ${PORT}`);
+  console.log(`Server accessible at http://localhost:${PORT}`);
 });
 
 module.exports = app;

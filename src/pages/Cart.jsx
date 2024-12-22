@@ -15,21 +15,18 @@ import {
 } from '../services/paynowService';
 
 const Cart = () => {
-  const [cart, setCart] = useState({ items: [] });
   const [loading, setLoading] = useState(true);
   const [showPayPal, setShowPayPal] = useState(false);
   const [paynowLoading, setPaynowLoading] = useState(false);
   const { user } = useAuth();
-  const { updateCartCount, clearCart } = useCart();
+  const { cart, setCart, cartItemCount, clearCart } = useCart();
   const navigate = useNavigate();
 
   const fetchCart = async () => {
     if (user) {
       const cartData = await getCart(user.uid);
       if (cartData) {
-        setCart(cartData);
-        // Update cart count in context
-        updateCartCount();
+        setCart(cartData.items || []);
       }
     }
     setLoading(false);
@@ -40,7 +37,7 @@ const Cart = () => {
   }, [user]);
 
   const handleQuantityChange = async (index, change) => {
-    const item = cart.items[index];
+    const item = cart[index];
     const newQuantity = Math.max(1, item.quantity + change);
     
     const result = await updateCartItemQuantity(
@@ -49,14 +46,10 @@ const Cart = () => {
       newQuantity
     );
     if (result.success) {
-      setCart(prev => ({
-        ...prev,
-        items: result.items
-      }));
-      // Update cart count
-      updateCartCount();
-    } else {
-      toast.error('Failed to update quantity');
+      // Update local cart state
+      const updatedCart = [...cart];
+      updatedCart[index] = { ...item, quantity: newQuantity };
+      setCart(updatedCart);
     }
   };
 
@@ -66,19 +59,17 @@ const Cart = () => {
       index
     );
     if (result.success) {
-      setCart(prev => ({
-        ...prev,
-        items: result.items
-      }));
-      // Update cart count
-      updateCartCount();
+      // Update local cart state
+      const updatedCart = [...cart];
+      updatedCart.splice(index, 1);
+      setCart(updatedCart);
     } else {
       toast.error('Failed to remove item');
     }
   };
 
   const calculateTotal = () => {
-    return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
   const handleCheckoutSuccess = async (orderId) => {
@@ -95,71 +86,38 @@ const Cart = () => {
       return;
     }
 
-    // Start loading state
-    setPaynowLoading(true);
+    if (cart.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
 
+    setPaynowLoading(true);
     try {
       // Initialize Paynow transaction
-      const transactionResult = await initializePaynowTransaction(cart, user.email, user);
-      
-      if (transactionResult.success) {
-        // Open popup window
-        const popupWidth = 600;
-        const popupHeight = 700;
-        const left = (window.screen.width / 2) - (popupWidth / 2);
-        const top = (window.screen.height / 2) - (popupHeight / 2);
+      const result = await initializePaynowTransaction(
+        cart,  // Pass cart directly
+        user.email, 
+        user
+      );
 
-        const paymentPopup = window.open(
-          transactionResult.url, 
-          'PayNowPayment',
-          `width=${popupWidth},height=${popupHeight},left=${left},top=${top},scrollbars=yes`
-        );
-
-        // Set up order status listener
-        const unsubscribe = listenToOrderStatus(
-          transactionResult.orderId, 
-          ({ status, transactionReference }) => {
-            switch(status) {
-              case 'Paid':
-                toast.success('Payment successful!');
-                clearCart();
-                navigate('/order-confirmation', { 
-                  state: { 
-                    orderId: transactionResult.orderId, 
-                    transactionReference 
-                  } 
-                });
-                break;
-              case 'Failed':
-                toast.error('Payment failed. Please try again.');
-                break;
-              case 'Pending':
-                toast.info('Payment is being processed...');
-                break;
-            }
-
-            // Stop loading once we have a final status
-            if (['Paid', 'Failed'].includes(status)) {
-              setPaynowLoading(false);
-            }
+      if (result.success) {
+        // Listen for order status updates
+        listenToOrderStatus(result.orderId, (status) => {
+          if (status === 'completed') {
+            clearCart();
+            navigate('/order-success');
           }
-        );
+        });
 
-        // Watch for popup closure
-        const popupInterval = setInterval(() => {
-          if (paymentPopup.closed) {
-            clearInterval(popupInterval);
-            unsubscribe(); // Stop listening if popup is closed
-            setPaynowLoading(false);
-            toast.info('Payment window closed. Please check your order status.');
-          }
-        }, 500);
+        // Redirect to Paynow payment link
+        window.location.href = result.url;
       } else {
-        throw new Error(transactionResult.error || 'Failed to initialize Paynow transaction');
+        toast.error(result.error || 'Failed to initialize Paynow transaction');
       }
     } catch (error) {
       console.error('Paynow Checkout Error:', error);
-      toast.error('An error occurred during Paynow checkout');
+      toast.error('An error occurred during checkout');
+    } finally {
       setPaynowLoading(false);
     }
   };
@@ -191,14 +149,14 @@ const Cart = () => {
         >
           <h1 className="text-4xl font-bold mb-8 text-center">Your Cart</h1>
           
-          {cart.items.length === 0 ? (
+          {cart.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-xl">Your cart is empty</p>
             </div>
           ) : (
             <>
               <div className="space-y-4">
-                {cart.items.map((item, index) => (
+                {cart.map((item, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
@@ -255,7 +213,7 @@ const Cart = () => {
                 <div className="flex flex-col items-center space-y-4">
                   {showPayPal ? (
                     <PayPalCheckout 
-                      items={cart.items}
+                      items={cart}
                       total={total}
                       userId={user.uid}
                       onSuccess={handleCheckoutSuccess}
@@ -270,7 +228,7 @@ const Cart = () => {
                       </button>
                       <button
                         onClick={handlePaynowCheckout}
-                        disabled={paynowLoading || cart.items.length === 0}
+                        disabled={paynowLoading || cart.length === 0}
                         className="w-1/2 bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition-all duration-300 font-medium disabled:opacity-50"
                       >
                         {paynowLoading ? 'Processing...' : 'PayNow Checkout'}

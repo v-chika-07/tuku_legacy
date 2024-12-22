@@ -11,8 +11,8 @@ const NOTIFICATION_URL = 'https://www.zunzorunningclub.com/paynow/notification';
 
 export const initializePaynowTransaction = async (cart, userEmail, user) => {
   try {
-    // Calculate total
-    const total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Calculate total (now using direct cart array)
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     // Generate transaction reference
     const transactionRef = `ZunzoOrder_${Date.now()}`;
@@ -53,34 +53,29 @@ export const initializePaynowTransaction = async (cart, userEmail, user) => {
 export const createPendingPaynowOrder = async (cart, user, transactionRef) => {
   try {
     const db = getFirestore();
-    const ordersCollection = collection(db, 'orders');
+    const ordersRef = collection(db, 'orders');
 
-    // Calculate total
-    const total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-    // Prepare order data
+    // Create order document
     const orderData = {
       userId: user.uid,
+      userEmail: user.email,
       transactionReference: transactionRef,
-      items: cart.items,
-      total: total,
-      status: 'Pending', // Initial status
-      paymentMethod: 'Paynow',
+      items: cart, // Now directly using cart array
+      total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+      status: 'pending',
       createdAt: new Date(),
-      updatedAt: new Date()
+      paymentMethod: 'Paynow'
     };
 
     // Add order to Firestore
-    const orderRef = await addDoc(ordersCollection, orderData);
+    const orderDocRef = await addDoc(ordersRef, orderData);
 
     return {
       success: true,
-      orderId: orderRef.id,
-      transactionReference: transactionRef
+      orderId: orderDocRef.id
     };
   } catch (error) {
-    console.error('Error creating pending order:', error);
-    toast.error('Failed to create order');
+    console.error('Create Pending Paynow Order Error:', error);
     return {
       success: false,
       error: error.message
