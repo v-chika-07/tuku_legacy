@@ -1,6 +1,5 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config';
-import { sendRegistrationEmail } from '../../services/emailService';
 
 const COLLECTION_NAME = 'event_registrations';
 
@@ -24,14 +23,6 @@ export const submitEventRegistration = async (registrationData) => {
     // Add the document
     const docRef = await addDoc(collectionRef, dataToSubmit);
 
-    // Send confirmation email
-    try {
-      await sendRegistrationEmail(registrationData);
-    } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError);
-      // Don't throw the error as registration was successful
-    }
-    
     return { 
       success: true, 
       id: docRef.id,
