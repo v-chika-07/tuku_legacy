@@ -197,6 +197,13 @@ const Registration = () => {
                   }
                 }
               }
+            },
+            // Specify transaction type and pass registration data
+            'registration',
+            { 
+              uid: 'registration_' + Date.now(),
+              email: formData.email,
+              registrationData: formData
             }
           );
 

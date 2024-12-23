@@ -127,7 +127,13 @@ export const listenToOrderStatus = (orderId, callback) => {
   return unsubscribe;
 };
 
-export const listenForPaynowTransaction = (userEmail, orderId, callback) => {
+export const listenForPaynowTransaction = async (
+  userEmail, 
+  orderId, 
+  callback,
+  transactionType = 'default',  
+  additionalData = null  
+) => {
   const db = getFirestore();
   const paynowTransactionsRef = collection(db, 'paynow_transactions');
   
@@ -168,32 +174,76 @@ export const listenForPaynowTransaction = (userEmail, orderId, callback) => {
             return;
           }
 
-          // Create the registration document with the paynow_reference
-          const registrationsRef = collection(db, 'event_registrations');
-          const registrationDocRef = await addDoc(registrationsRef, {
-            ...transactionData.registrationData,
-            paynow_reference: paynowReference,
-            paymentStatus: 'completed',
-            createdAt: serverTimestamp(),
-            submittedAt: new Date().toISOString()
-          });
+          // Handle different transaction types
+          switch(transactionType) {
+            case 'registration':
+              // Ensure registration data is available
+              if (!additionalData?.registrationData) {
+                console.error('No registration data found');
+                callback({
+                  success: false,
+                  error: 'No registration data available'
+                });
+                return;
+              }
 
-          // Send confirmation email
-          try {
-            await sendRegistrationEmail(transactionData.registrationData);
-          } catch (emailError) {
-            console.error('Failed to send confirmation email:', emailError);
+              // Create the registration document with the paynow_reference
+              const registrationsRef = collection(db, 'event_registrations');
+              const registrationDocRef = await addDoc(registrationsRef, {
+                ...additionalData.registrationData,
+                paynow_reference: paynowReference,
+                paymentStatus: 'completed',
+                createdAt: serverTimestamp(),
+                submittedAt: new Date().toISOString()
+              });
+
+              // Send confirmation email
+              try {
+                await sendRegistrationEmail(additionalData.registrationData);
+              } catch (emailError) {
+                console.error('Failed to send confirmation email:', emailError);
+              }
+
+              // Call callback to handle UI updates
+              callback({
+                success: true,
+                transactionData: {
+                  ...transactionData,
+                  paynow_reference: paynowReference
+                },
+                registrationId: registrationDocRef.id
+              });
+              break;
+
+            case 'order':
+              // Update the order document's payment status
+              const orderRef = doc(db, 'orders', orderId);
+              
+              await updateDoc(orderRef, {
+                paymentStatus: 'Paid',
+                paidAt: new Date().toISOString()
+              });
+
+              // Call callback to handle UI updates
+              callback({
+                success: true,
+                transactionData: {
+                  ...transactionData,
+                  paynow_reference: paynowReference
+                }
+              });
+              break;
+
+            default:
+              // Default handling for other transaction types
+              callback({
+                success: true,
+                transactionData: {
+                  ...transactionData,
+                  paynow_reference: paynowReference
+                }
+              });
           }
-
-          // Call callback to handle UI updates
-          callback({
-            success: true,
-            transactionData: {
-              ...transactionData,
-              paynow_reference: paynowReference
-            },
-            registrationId: registrationDocRef.id
-          });
 
           // Unsubscribe from both listeners
           newDocsUnsubscribe();
