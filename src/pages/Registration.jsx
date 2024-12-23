@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FaUser, FaRunning, FaCreditCard, FaCheck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { submitEventRegistration } from '../firebase/services/eventService';
 import { sendRegistrationEmail } from '../services/emailService';
 import { toast } from 'react-toastify';
+import { 
+  initializePaynowTransaction, 
+  createPendingPaynowOrder, 
+  listenToOrderStatus,
+  listenForPaynowTransaction
+} from '../services/paynowService';
 
 const Registration = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPaynowLoading, setIsPaynowLoading] = useState(false);
+  const [showPaynowCheckout, setShowPaynowCheckout] = useState(false);
+  const [paynowUrl, setPaynowUrl] = useState(null);
   const [formData, setFormData] = useState({
     // Personal Information
     firstName: '',
@@ -95,6 +104,170 @@ const Registration = () => {
     }
   };
 
+  const paynowUnsubscribeRef = useRef(null);
+
+  const handlePaynowCheckout = async () => {
+    // Validate form before checkout
+    const requiredFields = [
+      'firstName', 'lastName', 'email', 'phone', 
+      'dateOfBirth', 'gender', 'raceCategory', 'tShirtSize', 
+      'emergencyContact', 'emergencyPhone'
+    ];
+    
+    const missingFields = requiredFields.filter(field => !formData[field]);
+    
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    setIsPaynowLoading(true);
+    try {
+      // Determine race fee based on category
+      const raceFees = {
+        '21.1km': 0.01,  // Half Marathon fee
+        '10km': 0.01,    // Fun Run fee
+        '5km': 0.01      // Family Walk fee
+      };
+      const amount = raceFees[formData.raceCategory] || 0.01;
+
+      // Prepare registration data as cart-like object
+      const registrationCart = [{
+        name: `${formData.raceCategory} Registration`,
+        price: amount,
+        quantity: 1
+      }];
+
+      // Initialize Paynow transaction
+      const result = await initializePaynowTransaction(
+        registrationCart,  
+        formData.email, 
+        { 
+          uid: 'registration_' + Date.now(),
+          email: formData.email,
+          registrationData: formData
+        }
+      );
+
+      if (result.success) {
+        // Open PayNow URL in a popup window
+        const popupWidth = 600;
+        const popupHeight = 700;
+        const left = (window.screen.width / 2) - (popupWidth / 2);
+        const top = (window.screen.height / 2) - (popupHeight / 2);
+        
+        const paymentWindow = window.open(
+          result.url, 
+          'PayNow Payment', 
+          `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`
+        );
+
+        // Create a promise that resolves when transaction is complete
+        const transactionPromise = new Promise((resolve, reject) => {
+          // Set up real-time listener for Paynow transactions
+          const unsubscribe = listenForPaynowTransaction(
+            formData.email, 
+            result.orderId, 
+            async (transactionResult) => {
+              if (transactionResult.success) {
+                try {
+                  // Prepare registration data
+                  const registrationData = {
+                    ...formData,
+                    paymentStatus: 'completed'
+                  };
+
+                  // Submit registration
+                  const registrationResult = await submitEventRegistration(registrationData);
+                  
+                  if (registrationResult.success) {
+                    // Send confirmation email
+                    await sendRegistrationEmail(registrationData);
+                    
+                    resolve(registrationResult);
+                  } else {
+                    reject(new Error('Registration submission failed'));
+                  }
+                } catch (error) {
+                  reject(error);
+                } finally {
+                  // Always unsubscribe
+                  if (typeof unsubscribe === 'function') {
+                    unsubscribe();
+                  }
+                }
+              }
+            }
+          );
+
+          // Optional: Add a timeout to prevent indefinite waiting
+          setTimeout(() => {
+            if (typeof unsubscribe === 'function') {
+              unsubscribe();
+            }
+            reject(new Error('Payment verification timed out'));
+          }, 5 * 60 * 1000); // 5 minutes timeout
+        });
+
+        try {
+          // Wait for transaction to complete
+          await transactionPromise;
+
+          // Close the popup window if it's still open
+          if (paymentWindow && !paymentWindow.closed) {
+            paymentWindow.close();
+          }
+
+          // Navigate to success page
+          toast.success('Registration successful!');
+          navigate('/registration-success');
+        } catch (error) {
+          // Handle any errors during transaction
+          toast.error(error.message || 'Registration processing failed');
+          
+          // Close popup if still open
+          if (paymentWindow && !paymentWindow.closed) {
+            paymentWindow.close();
+          }
+        } finally {
+          setIsPaynowLoading(false);
+        }
+      } else {
+        toast.error('Failed to initialize PayNow transaction');
+        setIsPaynowLoading(false);
+      }
+    } catch (error) {
+      console.error('PayNow Checkout Error:', error);
+      toast.error('An error occurred during checkout');
+      setIsPaynowLoading(false);
+    }
+  };
+
+  const PaynowFloatingTab = () => {
+    const handleClose = () => {
+      setPaynowUrl(null);
+      setShowPaynowCheckout(false);
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="relative w-11/12 max-w-4xl h-5/6 bg-white rounded-lg shadow-2xl">
+          <button 
+            onClick={handleClose}
+            className="absolute top-4 right-4 z-60 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+          >
+            Close
+          </button>
+          <iframe 
+            src={paynowUrl} 
+            className="w-full h-full rounded-lg"
+            title="PayNow Checkout"
+          />
+        </div>
+      </div>
+    );
+  };
+
   const renderStepIndicator = () => (
     <div className="flex justify-center mb-8">
       {steps.map((s, index) => (
@@ -130,7 +303,7 @@ const Registration = () => {
             name="firstName"
             value={formData.firstName}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
           />
         </div>
@@ -141,7 +314,7 @@ const Registration = () => {
             name="lastName"
             value={formData.lastName}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
           />
         </div>
@@ -154,7 +327,7 @@ const Registration = () => {
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
           />
         </div>
@@ -165,7 +338,7 @@ const Registration = () => {
             name="phone"
             value={formData.phone}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
           />
         </div>
@@ -178,7 +351,7 @@ const Registration = () => {
             name="dateOfBirth"
             value={formData.dateOfBirth}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
           />
         </div>
@@ -188,13 +361,12 @@ const Registration = () => {
             name="gender"
             value={formData.gender}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white appearance-none"
             required
           >
             <option value="">Select Gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
-            <option value="other">Other</option>
           </select>
         </div>
       </div>
@@ -213,7 +385,7 @@ const Registration = () => {
           name="raceCategory"
           value={formData.raceCategory}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white"
+          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white appearance-none"
           required
         >
           <option value="">Select Category</option>
@@ -228,7 +400,7 @@ const Registration = () => {
           name="tShirtSize"
           value={formData.tShirtSize}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white"
+          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white appearance-none"
           required
         >
           <option value="">Select Size</option>
@@ -248,7 +420,7 @@ const Registration = () => {
             name="emergencyContact"
             value={formData.emergencyContact}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
           />
         </div>
@@ -259,7 +431,7 @@ const Registration = () => {
             name="emergencyPhone"
             value={formData.emergencyPhone}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
           />
         </div>
@@ -280,7 +452,7 @@ const Registration = () => {
           name="cardName"
           value={formData.cardName}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
           required
         />
       </div>
@@ -291,7 +463,7 @@ const Registration = () => {
           name="cardNumber"
           value={formData.cardNumber}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
           required
           maxLength="16"
         />
@@ -305,7 +477,7 @@ const Registration = () => {
             value={formData.expiryDate}
             onChange={handleInputChange}
             placeholder="MM/YY"
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
             maxLength="5"
           />
@@ -317,11 +489,21 @@ const Registration = () => {
             name="cvv"
             value={formData.cvv}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-gray-800 bg-white caret-zunzo-primary"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
             maxLength="3"
           />
         </div>
+      </div>
+      <div className="mt-8 flex justify-center">
+        <button
+          type="button"
+          onClick={handlePaynowCheckout}
+          disabled={isPaynowLoading}
+          className={`bg-zunzo-primary text-white px-8 py-3 rounded-full hover:bg-orange-600 transition-colors ${isPaynowLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {isPaynowLoading ? 'Processing...' : 'Pay with Paynow'}
+        </button>
       </div>
     </motion.div>
   );
@@ -351,12 +533,13 @@ const Registration = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
+      {showPaynowCheckout && <PaynowFloatingTab />}
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-3xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-8">
             {step < 4 && (
               <>
-                <h1 className="text-3xl font-bold text-center mb-8">
+                <h1 className="text-3xl font-bold text-center mb-8 text-black">
                   Register for Tuku Legacy Half Marathon
                 </h1>
                 {renderStepIndicator()}
@@ -380,13 +563,15 @@ const Registration = () => {
                       Back
                     </button>
                   )}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`bg-zunzo-primary text-white px-8 py-3 rounded-full hover:bg-orange-600 transition-colors ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {isSubmitting ? 'Submitting...' : step === 3 ? 'Complete Registration' : 'Next Step'}
-                  </button>
+                  {step < 3 && (
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className={`bg-zunzo-primary text-white px-8 py-3 rounded-full hover:bg-orange-600 transition-colors ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Next Step'}
+                    </button>
+                  )}
                 </div>
               )}
             </form>

@@ -79,7 +79,7 @@ const RegistrationDetails = () => {
                   <th className="text-left py-4 px-4">Full Name</th>
                   <th className="text-left py-4 px-4">Email</th>
                   <th className="text-left py-4 px-4">Phone</th>
-                  <th className="text-left py-4 px-4">Payment Status</th>
+                  <th className="text-left py-4 px-4">Payment Reference</th>
                 </tr>
               </thead>
               <tbody>
@@ -94,9 +94,15 @@ const RegistrationDetails = () => {
                     <td className="py-4 px-4">{registration.email}</td>
                     <td className="py-4 px-4">{registration.phone}</td>
                     <td className="py-4 px-4">
-                      <span className="inline-block px-3 py-1 rounded-full bg-red-500/20 text-red-300">
-                        Unpaid
-                      </span>
+                      {registration.paynow_reference ? (
+                        <span className="inline-block px-3 py-1 rounded-full bg-green-500/20 text-green-300">
+                          {registration.paynow_reference}
+                        </span>
+                      ) : (
+                        <span className="inline-block px-3 py-1 rounded-full bg-red-500/20 text-red-300">
+                          Unpaid
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

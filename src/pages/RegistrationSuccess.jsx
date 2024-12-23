@@ -26,7 +26,9 @@ const RegistrationSuccess = () => {
             }}
             className="flex justify-center mb-6"
           >
-            <FaCheckCircle className="text-zunzo-primary text-7xl" />
+            <div className="bg-black p-4 rounded-full">
+              <FaCheckCircle className="text-white text-7xl" />
+            </div>
           </motion.div>
 
           <motion.h1

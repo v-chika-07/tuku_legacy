@@ -1,16 +1,20 @@
-import { toast } from 'react-toastify';
-import { processPaynowNotification, handlePaynowReturn } from './paynowNotificationService';
 import { 
   getFirestore, 
   collection, 
-  addDoc, 
-  doc, 
-  onSnapshot, 
   query, 
   where, 
   limit, 
-  updateDoc 
+  updateDoc,
+  getDocs,
+  serverTimestamp,
+  getDoc,
+  addDoc,
+  doc,
+  onSnapshot
 } from 'firebase/firestore';
+import { toast } from 'react-toastify';
+import { processPaynowNotification, handlePaynowReturn } from './paynowNotificationService';
+import { sendRegistrationEmail } from './emailService';
 
 // Paynow configuration
 const MERCHANT_ID = import.meta.env.VITE_PAYNOW_INTEGRATION_ID;
@@ -127,52 +131,100 @@ export const listenForPaynowTransaction = (userEmail, orderId, callback) => {
   const db = getFirestore();
   const paynowTransactionsRef = collection(db, 'paynow_transactions');
   
-  // Create a query to listen for new documents matching user email
-  const q = query(
+  // First, collect existing document IDs
+  const existingDocsQuery = query(
     paynowTransactionsRef, 
-    where('customer_email', '==', userEmail),
-    limit(1)
+    where('customer_email', '==', userEmail)
   );
 
   // Set up real-time listener
-  const unsubscribe = onSnapshot(q, async (snapshot) => {
-    if (!snapshot.empty) {
-      const transactionDoc = snapshot.docs[0];
-      const transactionData = transactionDoc.data();
+  const unsubscribe = onSnapshot(existingDocsQuery, async (existingSnapshot) => {
+    // Collect IDs of existing documents
+    const existingDocIds = existingSnapshot.docs.map(doc => doc.id);
 
-      try {
-        // Update the order document's payment status
-        const db = getFirestore();
-        const orderRef = doc(db, 'orders', orderId);
-        
-        await updateDoc(orderRef, {
-          paymentStatus: 'Paid',
-          paidAt: new Date().toISOString()
-        });
+    // Create a new query to listen for new documents
+    const newDocsQuery = query(
+      paynowTransactionsRef, 
+      where('customer_email', '==', userEmail)
+    );
 
-        // Call callback to handle UI updates
-        callback({
-          success: true,
-          transactionData: transactionData
-        });
+    // Set up listener for new documents
+    const newDocsUnsubscribe = onSnapshot(newDocsQuery, async (newSnapshot) => {
+      // Find documents that are not in the existing set
+      const newDocs = newSnapshot.docs.filter(doc => 
+        !existingDocIds.includes(doc.id)
+      );
 
-        // Unsubscribe after successful processing
-        unsubscribe();
-      } catch (error) {
-        console.error('Error updating order status:', error);
-        callback({
-          success: false,
-          error: error.message
-        });
+      if (newDocs.length > 0) {
+        try {
+          // Take the first new document
+          const newTransactionDoc = newDocs[0];
+          const transactionData = newTransactionDoc.data();
+
+          // Extract paynow_reference directly from the transaction document
+          const paynowReference = transactionData.paynow_reference;
+          if (!paynowReference) {
+            console.error('Paynow reference is missing from the transaction document');
+            return;
+          }
+
+          // Create the registration document with the paynow_reference
+          const registrationsRef = collection(db, 'event_registrations');
+          const registrationDocRef = await addDoc(registrationsRef, {
+            ...transactionData.registrationData,
+            paynow_reference: paynowReference,
+            paymentStatus: 'completed',
+            createdAt: serverTimestamp(),
+            submittedAt: new Date().toISOString()
+          });
+
+          // Send confirmation email
+          try {
+            await sendRegistrationEmail(transactionData.registrationData);
+          } catch (emailError) {
+            console.error('Failed to send confirmation email:', emailError);
+          }
+
+          // Call callback to handle UI updates
+          callback({
+            success: true,
+            transactionData: {
+              ...transactionData,
+              paynow_reference: paynowReference
+            },
+            registrationId: registrationDocRef.id
+          });
+
+          // Unsubscribe from both listeners
+          newDocsUnsubscribe();
+          unsubscribe();
+        } catch (error) {
+          console.error('Error processing new transaction:', error);
+          callback({
+            success: false,
+            error: error.message
+          });
+        }
       }
-    }
+    }, (error) => {
+      console.error('Error listening to new PayNow transactions:', error);
+      callback({
+        success: false,
+        error: error.message
+      });
+    });
+
+    return newDocsUnsubscribe;
   }, (error) => {
-    console.error('Error listening to PayNow transactions:', error);
+    console.error('Error collecting existing PayNow transactions:', error);
     callback({
       success: false,
       error: error.message
     });
   });
 
-  return unsubscribe;
+  // Return a function to unsubscribe from both listeners
+  return () => {
+    unsubscribe();
+  };
 };
