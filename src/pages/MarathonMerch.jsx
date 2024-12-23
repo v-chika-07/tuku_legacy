@@ -93,7 +93,7 @@ const colorClasses = {
 
 const MarathonMerch = () => {
   const { isAuthenticated, user } = useAuth();
-  const { updateCartCount } = useCart();
+  const { cart, setCart, cartItemCount, setCartItemCount } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedColors, setSelectedColors] = useState({});
@@ -190,10 +190,11 @@ const MarathonMerch = () => {
       image: product.images[selectedColor]
     };
 
-    const result = await addToCart(user.uid, cartItem);
+    const result = await addToCart(user.uid, cartItem, (newTotalCount) => {
+      setCartItemCount(newTotalCount);
+    });
     if (result.success) {
       toast.success('Added to cart!');
-      updateCartCount();
     } else {
       toast.error('Failed to add to cart');
     }

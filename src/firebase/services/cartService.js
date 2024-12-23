@@ -145,3 +145,20 @@ export const clearCart = async (userId, updateItemCountCallback = null) => {
     return { success: false, error: error.message };
   }
 };
+
+export const clearUserCart = async (userId) => {
+  try {
+    const cart = await getCart(userId);
+    if (!cart) throw new Error('Failed to get cart');
+
+    await updateDoc(doc(db, CART_COLLECTION, cart.id), {
+      items: [],
+      updatedAt: new Date()
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error clearing cart:', error);
+    return { success: false, error: error.message };
+  }
+};

@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FaTrash, FaMinus, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
-import { getCart, updateCartItemQuantity, removeFromCart } from '../firebase/services/cartService';
+import { getCart, updateCartItemQuantity, removeFromCart, clearUserCart } from '../firebase/services/cartService';
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import PayPalCheckout from '../components/PayPalCheckout';
 import { toast } from 'react-toastify';
 import { 
   initializePaynowTransaction, 
   createPendingPaynowOrder, 
-  listenToOrderStatus 
+  listenToOrderStatus,
+  listenForPaynowTransaction
 } from '../services/paynowService';
 
 const Cart = () => {
@@ -21,6 +22,7 @@ const Cart = () => {
   const { user } = useAuth();
   const { cart, setCart, cartItemCount, clearCart } = useCart();
   const navigate = useNavigate();
+  const paynowUnsubscribeRef = useRef(null);
 
   const fetchCart = async () => {
     if (user) {
@@ -76,8 +78,6 @@ const Cart = () => {
     toast.success('Payment successful!');
     setShowPayPal(false);
     await fetchCart(); // Refresh cart after successful payment
-    // You could navigate to an order confirmation page here
-    // navigate(`/order-confirmation/${orderId}`);
   };
 
   const handlePaynowCheckout = async () => {
@@ -101,26 +101,91 @@ const Cart = () => {
       );
 
       if (result.success) {
-        // Listen for order status updates
-        listenToOrderStatus(result.orderId, (status) => {
-          if (status === 'completed') {
-            clearCart();
-            navigate('/order-success');
-          }
+        // Open PayNow URL in a popup window
+        const popupWidth = 600;
+        const popupHeight = 700;
+        const left = (window.screen.width / 2) - (popupWidth / 2);
+        const top = (window.screen.height / 2) - (popupHeight / 2);
+        
+        const paymentWindow = window.open(
+          result.url, 
+          'PayNow Payment', 
+          `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`
+        );
+
+        // Create a promise that resolves when transaction is complete
+        const transactionPromise = new Promise((resolve, reject) => {
+          // Set up listener for PayNow transaction
+          const unsubscribe = listenForPaynowTransaction(
+            user.email, 
+            result.orderId, 
+            async (transactionResult) => {
+              if (transactionResult.success) {
+                resolve(transactionResult);
+              } else {
+                reject(new Error(transactionResult.error || 'Payment failed'));
+              }
+              
+              // Always unsubscribe
+              if (typeof unsubscribe === 'function') {
+                unsubscribe();
+              }
+            }
+          );
+
+          // Optional: Add a timeout to prevent indefinite waiting
+          setTimeout(() => {
+            if (typeof unsubscribe === 'function') {
+              unsubscribe();
+            }
+            reject(new Error('Payment verification timed out'));
+          }, 5 * 60 * 1000); // 5 minutes timeout
         });
 
-        // Redirect to Paynow payment link
-        window.location.href = result.url;
+        try {
+          // Wait for transaction to complete
+          await transactionPromise;
+
+          // Close the popup window if it's still open
+          if (paymentWindow && !paymentWindow.closed) {
+            paymentWindow.close();
+          }
+
+          // Clear cart and show success message
+          await clearUserCart(user.uid);
+          clearCart();
+          toast.success('Payment successful! Your order has been processed.');
+          navigate('/order-confirmation');
+        } catch (error) {
+          // Handle any errors during transaction
+          toast.error(error.message || 'Payment processing failed');
+          
+          // Close popup if still open
+          if (paymentWindow && !paymentWindow.closed) {
+            paymentWindow.close();
+          }
+        } finally {
+          setPaynowLoading(false);
+        }
       } else {
-        toast.error(result.error || 'Failed to initialize Paynow transaction');
+        toast.error('Failed to initialize PayNow transaction');
+        setPaynowLoading(false);
       }
     } catch (error) {
-      console.error('Paynow Checkout Error:', error);
+      console.error('PayNow Checkout Error:', error);
       toast.error('An error occurred during checkout');
-    } finally {
       setPaynowLoading(false);
     }
   };
+
+  // Cleanup listener on component unmount
+  useEffect(() => {
+    return () => {
+      if (paynowUnsubscribeRef.current) {
+        paynowUnsubscribeRef.current();
+      }
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -141,6 +206,11 @@ const Cart = () => {
       currency: "USD"
     }}>
       <div className="min-h-screen pt-24 pb-12">
+        {paynowLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-white"></div>
+          </div>
+        )}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

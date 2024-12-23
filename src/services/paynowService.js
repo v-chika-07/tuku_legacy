@@ -1,6 +1,16 @@
 import { toast } from 'react-toastify';
 import { processPaynowNotification, handlePaynowReturn } from './paynowNotificationService';
-import { getFirestore, collection, addDoc, doc, onSnapshot } from 'firebase/firestore';
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  doc, 
+  onSnapshot, 
+  query, 
+  where, 
+  limit, 
+  updateDoc 
+} from 'firebase/firestore';
 
 // Paynow configuration
 const MERCHANT_ID = import.meta.env.VITE_PAYNOW_INTEGRATION_ID;
@@ -15,7 +25,7 @@ export const initializePaynowTransaction = async (cart, userEmail, user) => {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     // Generate transaction reference
-    const transactionRef = `ZunzoOrder_${Date.now()}`;
+    const transactionRef = `T_legacy_${Date.now()}`;
 
     // Create pending order first
     const pendingOrderResult = await createPendingPaynowOrder(cart, user, transactionRef);
@@ -62,9 +72,10 @@ export const createPendingPaynowOrder = async (cart, user, transactionRef) => {
       transactionReference: transactionRef,
       items: cart, // Now directly using cart array
       total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-      status: 'pending',
-      createdAt: new Date(),
-      paymentMethod: 'Paynow'
+      status: 'Pending',
+      createdAt: new Date().toISOString(),
+      paymentMethod: 'Paynow',
+      paymentStatus: 'Pending'
     };
 
     // Add order to Firestore
@@ -112,8 +123,56 @@ export const listenToOrderStatus = (orderId, callback) => {
   return unsubscribe;
 };
 
-// Expose notification and return handlers for backend integration
-export { 
-  processPaynowNotification, 
-  handlePaynowReturn 
+export const listenForPaynowTransaction = (userEmail, orderId, callback) => {
+  const db = getFirestore();
+  const paynowTransactionsRef = collection(db, 'paynow_transactions');
+  
+  // Create a query to listen for new documents matching user email
+  const q = query(
+    paynowTransactionsRef, 
+    where('customer_email', '==', userEmail),
+    limit(1)
+  );
+
+  // Set up real-time listener
+  const unsubscribe = onSnapshot(q, async (snapshot) => {
+    if (!snapshot.empty) {
+      const transactionDoc = snapshot.docs[0];
+      const transactionData = transactionDoc.data();
+
+      try {
+        // Update the order document's payment status
+        const db = getFirestore();
+        const orderRef = doc(db, 'orders', orderId);
+        
+        await updateDoc(orderRef, {
+          paymentStatus: 'Paid',
+          paidAt: new Date().toISOString()
+        });
+
+        // Call callback to handle UI updates
+        callback({
+          success: true,
+          transactionData: transactionData
+        });
+
+        // Unsubscribe after successful processing
+        unsubscribe();
+      } catch (error) {
+        console.error('Error updating order status:', error);
+        callback({
+          success: false,
+          error: error.message
+        });
+      }
+    }
+  }, (error) => {
+    console.error('Error listening to PayNow transactions:', error);
+    callback({
+      success: false,
+      error: error.message
+    });
+  });
+
+  return unsubscribe;
 };
