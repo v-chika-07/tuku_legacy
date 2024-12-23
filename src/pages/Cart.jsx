@@ -74,10 +74,18 @@ const Cart = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
-  const handleCheckoutSuccess = async (orderId) => {
-    toast.success('Payment successful!');
-    setShowPayPal(false);
-    await fetchCart(); // Refresh cart after successful payment
+  const handleCheckoutSuccess = (orderId) => {
+    // Clear the cart
+    clearCart();
+    
+    // Navigate to order success page
+    navigate('/order-confirmation', { 
+      state: { 
+        orderId: orderId,
+        total: total,
+        items: cart 
+      } 
+    });
   };
 
   const handlePaynowCheckout = async () => {
