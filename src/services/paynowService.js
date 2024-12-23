@@ -197,13 +197,6 @@ export const listenForPaynowTransaction = async (
                 submittedAt: new Date().toISOString()
               });
 
-              // Send confirmation email
-              try {
-                await sendRegistrationEmail(additionalData.registrationData);
-              } catch (emailError) {
-                console.error('Failed to send confirmation email:', emailError);
-              }
-
               // Call callback to handle UI updates
               callback({
                 success: true,
