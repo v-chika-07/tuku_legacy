@@ -27,18 +27,19 @@ const Registration = () => {
     phone: '',
     dateOfBirth: '',
     gender: '',
+    idNumber: '',
+    hasMedicalAid: 'no',
+    medicalAidCompany: '',
+    medicalAidNumber: '',
     
     // Race Information
     raceCategory: '',
     tShirtSize: '',
-    emergencyContact: '',
-    emergencyPhone: '',
+    nextOfKinName: '',
+    nextOfKinPhone: '',
     
-    // Payment Information
-    cardName: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: ''
+    // Terms and Conditions
+    termsAccepted: false
   });
 
   const steps = [
@@ -70,10 +71,15 @@ const Registration = () => {
           phone: formData.phone,
           dateOfBirth: formData.dateOfBirth,
           gender: formData.gender,
+          idNumber: formData.idNumber,
+          hasMedicalAid: formData.hasMedicalAid,
+          medicalAidCompany: formData.medicalAidCompany,
+          medicalAidNumber: formData.medicalAidNumber,
           raceCategory: formData.raceCategory,
           tShirtSize: formData.tShirtSize,
-          emergencyContact: formData.emergencyContact,
-          emergencyPhone: formData.emergencyPhone,
+          nextOfKinName: formData.nextOfKinName,
+          nextOfKinPhone: formData.nextOfKinPhone,
+          termsAccepted: formData.termsAccepted
         };
 
         const result = await submitEventRegistration(registrationData);
@@ -111,13 +117,19 @@ const Registration = () => {
     const requiredFields = [
       'firstName', 'lastName', 'email', 'phone', 
       'dateOfBirth', 'gender', 'raceCategory', 'tShirtSize', 
-      'emergencyContact', 'emergencyPhone'
+      'nextOfKinName', 'nextOfKinPhone'
     ];
     
     const missingFields = requiredFields.filter(field => !formData[field]);
     
     if (missingFields.length > 0) {
       toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    // Check terms and conditions
+    if (!formData.termsAccepted) {
+      toast.error('Please accept the Terms and Conditions');
       return;
     }
 
@@ -171,18 +183,12 @@ const Registration = () => {
             async (transactionResult) => {
               if (transactionResult.success) {
                 try {
-                  // Prepare registration data
-                  const registrationData = {
-                    ...formData,
-                    paymentStatus: 'completed'
-                  };
-
                   // Submit registration
-                  const registrationResult = await submitEventRegistration(registrationData);
+                  const registrationResult = await submitEventRegistration(formData);
                   
                   if (registrationResult.success) {
                     // Send confirmation email
-                    await sendRegistrationEmail(registrationData);
+                    await sendRegistrationEmail(formData);
                     
                     resolve(registrationResult);
                   } else {
@@ -377,6 +383,87 @@ const Registration = () => {
           </select>
         </div>
       </div>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-gray-700 mb-2">ID Number</label>
+          <input
+            type="text"
+            name="idNumber"
+            value={formData.idNumber}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-2">Do you have medical aid?</label>
+          <select
+            name="hasMedicalAid"
+            value={formData.hasMedicalAid}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white appearance-none"
+            required
+          >
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+      </div>
+      {formData.hasMedicalAid === 'yes' && (
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-gray-700 mb-2">Medical Aid Company</label>
+            <input
+              type="text"
+              name="medicalAidCompany"
+              value={formData.medicalAidCompany}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-2">Medical Aid Number</label>
+            <input
+              type="text"
+              name="medicalAidNumber"
+              value={formData.medicalAidNumber}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
+              required
+            />
+          </div>
+        </div>
+      )}
+      <div className="space-y-4">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="termsAccepted"
+            name="termsAccepted"
+            checked={formData.termsAccepted}
+            onChange={(e) => setFormData(prev => ({
+              ...prev, 
+              termsAccepted: e.target.checked
+            }))}
+            className="mr-2 h-4 w-4 text-zunzo-primary focus:ring-zunzo-primary border-gray-300 rounded"
+            required
+          />
+          <label 
+            htmlFor="termsAccepted" 
+            className="text-gray-700 text-sm"
+          >
+            I have read and agree to the{' '}
+            <a 
+              href="/terms-and-conditions" 
+              target="_blank" 
+              className="text-zunzo-primary hover:underline"
+            >
+              Terms and Conditions
+            </a>
+          </label>
+        </div>
+      </div>
     </motion.div>
   );
 
@@ -421,22 +508,22 @@ const Registration = () => {
       </div>
       <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-gray-700 mb-2">Emergency Contact Name</label>
+          <label className="block text-gray-700 mb-2">Next of Kin Name</label>
           <input
             type="text"
-            name="emergencyContact"
-            value={formData.emergencyContact}
+            name="nextOfKinName"
+            value={formData.nextOfKinName}
             onChange={handleInputChange}
             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
           />
         </div>
         <div>
-          <label className="block text-gray-700 mb-2">Emergency Contact Phone</label>
+          <label className="block text-gray-700 mb-2">Next of Kin Phone</label>
           <input
             type="tel"
-            name="emergencyPhone"
-            value={formData.emergencyPhone}
+            name="nextOfKinPhone"
+            value={formData.nextOfKinPhone}
             onChange={handleInputChange}
             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
             required
@@ -452,62 +539,41 @@ const Registration = () => {
       animate={{ x: 0, opacity: 1 }}
       className="space-y-4"
     >
-      <div>
-        <label className="block text-gray-700 mb-2">Name on Card</label>
-        <input
-          type="text"
-          name="cardName"
-          value={formData.cardName}
-          onChange={handleInputChange}
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-gray-700 mb-2">Card Number</label>
-        <input
-          type="text"
-          name="cardNumber"
-          value={formData.cardNumber}
-          onChange={handleInputChange}
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
-          required
-          maxLength="16"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-gray-700 mb-2">Expiry Date</label>
+      <div className="mb-4">
+        <div className="flex items-center">
           <input
-            type="text"
-            name="expiryDate"
-            value={formData.expiryDate}
-            onChange={handleInputChange}
-            placeholder="MM/YY"
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
+            type="checkbox"
+            id="termsAccepted"
+            name="termsAccepted"
+            checked={formData.termsAccepted}
+            onChange={(e) => setFormData(prev => ({
+              ...prev, 
+              termsAccepted: e.target.checked
+            }))}
+            className="mr-2 h-4 w-4 text-zunzo-primary focus:ring-zunzo-primary border-gray-300 rounded"
             required
-            maxLength="5"
           />
-        </div>
-        <div>
-          <label className="block text-gray-700 mb-2">CVV</label>
-          <input
-            type="text"
-            name="cvv"
-            value={formData.cvv}
-            onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-zunzo-primary text-black bg-white caret-zunzo-primary appearance-none"
-            required
-            maxLength="3"
-          />
+          <label 
+            htmlFor="termsAccepted" 
+            className="text-gray-700 text-sm"
+          >
+            I have read and agree to the{' '}
+            <a 
+              href="/terms-and-conditions" 
+              target="_blank" 
+              className="text-zunzo-primary hover:underline"
+            >
+              Terms and Conditions
+            </a>
+          </label>
         </div>
       </div>
       <div className="mt-8 flex justify-center">
         <button
           type="button"
           onClick={handlePaynowCheckout}
-          disabled={isPaynowLoading}
-          className={`bg-zunzo-primary text-white px-8 py-3 rounded-full hover:bg-orange-600 transition-colors ${isPaynowLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={isPaynowLoading || !formData.termsAccepted}
+          className={`bg-zunzo-primary text-white px-8 py-3 rounded-full hover:bg-orange-600 transition-colors ${(isPaynowLoading || !formData.termsAccepted) ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isPaynowLoading ? 'Processing...' : 'Pay with Paynow'}
         </button>

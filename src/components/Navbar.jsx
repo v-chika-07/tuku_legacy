@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaBars, FaTimes, FaHome, FaInfoCircle, FaCalendarAlt, FaMusic, FaTshirt, FaHandsHelping, FaEnvelope, FaSignOutAlt } from 'react-icons/fa';
+import { FaBars, FaTimes, FaInfoCircle, FaCalendarAlt, FaMusic, FaTshirt, FaHandsHelping, FaEnvelope, FaSignOutAlt, FaRunning } from 'react-icons/fa';
 import MerchDropdown from './MerchDropdown';
 import { useAuth } from '../contexts/AuthContext';
 import { logoutUser } from '../firebase/authService';
@@ -15,12 +15,6 @@ const Navbar = () => {
   const location = useLocation();
 
   const links = [
-    {
-      id: 1,
-      link: '/',
-      text: 'HOME',
-      icon: <FaHome className="mb-1 mx-auto text-lg" />
-    },
     {
       id: 2,
       link: '/about',
@@ -42,12 +36,24 @@ const Navbar = () => {
     },
     {
       id: 5,
+      link: '/marathon',
+      text: 'MARATHON',
+      icon: <FaRunning className="mb-1 mx-auto text-lg" />
+    },
+    {
+      id: 6,
       link: '/omifa',
       text: 'OMIFA',
       icon: <FaHandsHelping className="mb-1 mx-auto text-lg" />
     },
     {
-      id: 6,
+      id: 7,
+      link: '/pakare-paye',
+      text: 'PAKARE PAYE',
+      icon: <FaMusic className="mb-1 mx-auto text-lg" />
+    },
+    {
+      id: 8,
       link: '/contact',
       text: 'CONTACT',
       icon: <FaEnvelope className="mb-1 mx-auto text-lg" />
@@ -92,11 +98,11 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <ul className="hidden md:flex space-x-6 items-center">
+        <ul className="hidden md:flex space-x-3 items-center">
           {links.map(({ id, link, text, icon, hasDropdown }) => (
             <li
               key={id}
-              className='relative px-4 cursor-pointer capitalize font-medium text-white hover:scale-105 duration-200'
+              className='relative px-2 cursor-pointer capitalize font-medium text-white hover:scale-105 duration-200'
               onMouseEnter={() => hasDropdown && setShowMerchDropdown(true)}
               onMouseLeave={() => hasDropdown && setShowMerchDropdown(false)}
             >
@@ -117,7 +123,7 @@ const Navbar = () => {
           ))}
           {isAuthenticated && (
             <li
-              className='relative px-4 cursor-pointer capitalize font-medium text-white hover:scale-105 duration-200'
+              className='relative px-2 cursor-pointer capitalize font-medium text-white hover:scale-105 duration-200'
             >
               <div 
                 onClick={async () => {
@@ -146,7 +152,7 @@ const Navbar = () => {
             className="fixed top-0 right-0 h-full w-64 bg-gradient-to-r from-accent via-secondary to-primary p-8 md:hidden"
           >
             <ul className="space-y-6">
-              {links.map(({ id, link, text, icon }) => (
+              {links.filter(link => link.link !== '/').map(({ id, link, text, icon }) => (
                 <li key={id}>
                   <Link 
                     to={link} 

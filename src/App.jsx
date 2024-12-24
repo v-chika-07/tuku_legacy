@@ -20,9 +20,11 @@ import Cart from './pages/Cart';
 import OrderDetails from './pages/OrderDetails';
 import OrderSuccess from './pages/OrderSuccess'
 import FloatingCart from './components/FloatingCart';
+import FloatingSocialMedia from './components/FloatingSocialMedia';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import './App.css'
+import EventsManagement from './pages/EventsManagement';
 
 function App() {
   return (
@@ -34,6 +36,7 @@ function App() {
           <div className="App">
             <Navbar />
             <FloatingCart />
+            <FloatingSocialMedia />
             <AudioPlayer />
             <Routes>
               <Route path="/" element={<Home />} />
@@ -50,11 +53,12 @@ function App() {
                 path="/music" 
                 element={
                   <ComingSoon 
-                    title="Tuku Music Experience"
-                    description="Get ready to experience the soul-stirring music of Oliver Mtukudzi. Our music platform will feature his timeless classics, rare recordings, and the stories behind his legendary compositions."
+                    title="Music Section" 
+                    description="Coming soon! Stay tuned for exciting musical content." 
                   />
                 } 
               />
+              <Route path="/admin/events" element={<EventsManagement />} />
               <Route 
                 path="/merch" 
                 element={

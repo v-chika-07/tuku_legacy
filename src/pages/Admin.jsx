@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FaLock, FaEnvelope, FaShoppingCart, FaUserPlus, FaBoxes } from 'react-icons/fa';
+import { FaLock, FaEnvelope, FaShoppingCart, FaUserPlus, FaBoxes, FaCalendarAlt } from 'react-icons/fa';
 import { db } from '../firebase/config.js';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 
@@ -11,6 +11,7 @@ const Admin = () => {
   const [registrationCount, setRegistrationCount] = useState(0);
   const [productCount, setProductCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
+  const [eventCount, setEventCount] = useState(0);
 
   useEffect(() => {
     // Messages Listener
@@ -47,11 +48,20 @@ const Admin = () => {
       console.error("Error fetching orders:", error);
     });
 
+    // Events Listener
+    const eventsQuery = query(collection(db, 'events'));
+    const unsubscribeEvents = onSnapshot(eventsQuery, (snapshot) => {
+      setEventCount(snapshot.size);
+    }, (error) => {
+      console.error("Error fetching events:", error);
+    });
+
     return () => {
       unsubscribeMessages();
       unsubscribeRegistrations();
       unsubscribeProducts();
       unsubscribeOrders();
+      unsubscribeEvents();
     };
   }, []);
 
@@ -199,6 +209,34 @@ const Admin = () => {
             </p>
             <Link 
               to="/admin/inventory" 
+              className="inline-block px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white"
+            >
+              View Details
+            </Link>
+          </motion.div>
+
+          {/* Events Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="bg-black/40 backdrop-blur-sm rounded-2xl p-6 text-white hover:bg-black/50 transition-all duration-300"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <FaCalendarAlt className="text-2xl" />
+              <h2 className="text-xl font-semibold">Events</h2>
+            </div>
+            <p className="text-white/80">
+              View and manage upcoming events
+            </p>
+            <div className="mt-4 text-3xl font-bold">
+              {eventCount}
+            </div>
+            <p className="text-white/60 text-sm mb-4">
+              Total events
+            </p>
+            <Link 
+              to="/admin/events" 
               className="inline-block px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white"
             >
               View Details

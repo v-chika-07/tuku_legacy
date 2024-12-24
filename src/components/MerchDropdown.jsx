@@ -25,7 +25,8 @@ const MerchDropdown = ({ isHovered, parentPath }) => {
     { name: 'LEGACY', path: '/coming-soon' },
     { name: 'HAI-KOBO', path: '/coming-soon' },
     { name: 'MARATHON', path: '/marathon-merch' },
-    { name: 'OMIFA', path: '/coming-soon' }
+    { name: 'OMIFA', path: '/coming-soon' },
+    { name: 'ARTWORK', path: '/coming-soon' }
   ];
 
   return (
