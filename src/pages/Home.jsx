@@ -94,7 +94,7 @@ const Home = () => {
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="text-4xl md:text-6xl font-bold mb-4"
+              className="text-5xl font-bold mb-4 text-white"
             >
               The Oliver Mtukudzi Memorial Half Marathon (OM³)
             </motion.h1>
@@ -102,7 +102,7 @@ const Home = () => {
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.7, duration: 0.8 }}
-              className="text-xl md:text-2xl mb-8"
+              className="text-xl mb-8 text-white"
             >
               Together, let's celebrate a legend, raise awareness, and make strides toward a healthier, more connected world
             </motion.p>
@@ -112,8 +112,8 @@ const Home = () => {
               transition={{ delay: 0.9, duration: 0.5 }}
             >
               <Link to="/registration">
-                <button className="bg-accent text-text-light px-8 py-4 rounded-2xl hover:bg-accent/80 transition-colors duration-300 transform hover:scale-105">
-                  Register Now
+                <button className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 inline-flex items-center">
+                  Register Now <FaArrowRight className="ml-2" />
                 </button>
               </Link>
             </motion.div>
@@ -125,17 +125,17 @@ const Home = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { 
-                icon: <FaMusic className="text-6xl" />, 
+                icon: <FaMusic className="text-6xl text-white" />, 
                 title: 'Musical Legacy', 
                 description: "Celebrating 50 Years of Tuku Music in 2025, featuring the inspirational \"Wasakara\" as our theme song" 
               },
               { 
-                icon: <FaCalendarAlt className="text-6xl" />, 
+                icon: <FaCalendarAlt className="text-6xl text-white" />, 
                 title: 'Health Awareness', 
                 description: 'Empowering Global Health through diabetes awareness and promoting proactive health management' 
               },
               { 
-                icon: <FaRunning className="text-6xl" />, 
+                icon: <FaRunning className="text-6xl text-white" />, 
                 title: 'Community Impact', 
                 description: "Join us in preserving Tuku's legacy while fostering unity through culture and athleticism" 
               }

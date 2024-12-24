@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaBars, FaTimes, FaInfoCircle, FaCalendarAlt, FaMusic, FaTshirt, FaHandsHelping, FaEnvelope, FaSignOutAlt, FaRunning } from 'react-icons/fa';
+import { 
+  FaHome, 
+  FaInfoCircle, 
+  FaCalendarAlt, 
+  FaTshirt, 
+  FaRunning, 
+  FaHandsHelping, 
+  FaEnvelope,
+  FaTheaterMasks,
+  FaBars, 
+  FaTimes, 
+  FaSignOutAlt, 
+  FaMusic 
+} from 'react-icons/fa';
 import MerchDropdown from './MerchDropdown';
 import { useAuth } from '../contexts/AuthContext';
 import { logoutUser } from '../firebase/authService';
@@ -36,21 +49,21 @@ const Navbar = () => {
     },
     {
       id: 5,
+      link: '/pakare-paye',
+      text: 'PAKARE PAYE',
+      icon: <FaTheaterMasks className="mb-1 mx-auto text-lg" />
+    },
+    {
+      id: 6,
       link: '/marathon',
       text: 'MARATHON',
       icon: <FaRunning className="mb-1 mx-auto text-lg" />
     },
     {
-      id: 6,
+      id: 7,
       link: '/omifa',
       text: 'OMIFA',
       icon: <FaHandsHelping className="mb-1 mx-auto text-lg" />
-    },
-    {
-      id: 7,
-      link: '/pakare-paye',
-      text: 'PAKARE PAYE',
-      icon: <FaMusic className="mb-1 mx-auto text-lg" />
     },
     {
       id: 8,

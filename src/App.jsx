@@ -25,6 +25,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import './App.css'
 import EventsManagement from './pages/EventsManagement';
+import Marathon from './pages/Marathon';
+import PakarePaye from './pages/PakarePaye';
 
 function App() {
   return (
@@ -79,9 +81,11 @@ function App() {
               />
               <Route path="/coming-soon" element={<ComingSoon />} />
               <Route path="/marathon-merch" element={<MarathonMerch />} />
+              <Route path="/marathon" element={<Marathon />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/order-details" element={<OrderDetails />} />
               <Route path="/order-confirmation" element={<OrderSuccess />} />
+              <Route path="/pakare-paye" element={<PakarePaye />} />
             </Routes>
           </div>
         </CartProvider>

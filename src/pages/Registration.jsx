@@ -11,6 +11,8 @@ import {
   listenToOrderStatus,
   listenForPaynowTransaction
 } from '../services/paynowService';
+import registrationImage1 from '../assets/images/IMG-20241218-WA0005.jpg';
+import registrationImage2 from '../assets/images/IMG-20241218-WA0006.jpg';
 
 const Registration = () => {
   const navigate = useNavigate();
@@ -283,19 +285,19 @@ const Registration = () => {
 
   const renderStepIndicator = () => (
     <div className="flex justify-center mb-8">
-      {steps.map((s, index) => (
-        <div key={s.number} className="flex items-center">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className={`flex items-center justify-center w-12 h-12 rounded-full 
-              ${step >= s.number ? 'bg-zunzo-primary' : 'bg-gray-200'} 
-              ${step >= s.number ? 'text-white' : 'text-gray-500'}`}
-          >
-            <s.icon className="text-xl" />
-          </motion.div>
-          {index < steps.length - 1 && (
-            <div className={`w-20 h-1 mx-2 ${step > s.number ? 'bg-zunzo-primary' : 'bg-gray-200'}`} />
+      {steps.map((stepItem) => (
+        <div 
+          key={stepItem.number}
+          className={`flex items-center ${
+            step === stepItem.number 
+              ? 'text-primary' 
+              : 'text-gray-400'
+          }`}
+        >
+          <stepItem.icon className="mr-2" />
+          <span className="font-semibold">{stepItem.title}</span>
+          {stepItem.number < steps.length && (
+            <div className="mx-4 w-12 h-0.5 bg-gray-300" />
           )}
         </div>
       ))}
@@ -605,20 +607,72 @@ const Registration = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      {showPaynowCheckout && <PaynowFloatingTab />}
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+    <div className="min-h-screen bg-gradient-to-br from-zunzo-primary/10 to-zunzo-primary/30 py-16 px-4 relative overflow-hidden">
+      {/* Left Side Image */}
+      <motion.div 
+        initial={{ opacity: 0, x: -100 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1, delay: 0.5 }}
+        className="fixed left-0 top-0 bottom-0 w-[26%] hidden md:block"
+        style={{
+          backgroundImage: `url(${registrationImage1})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-zunzo-primary/60 to-transparent mix-blend-multiply" />
+      </motion.div>
+
+      {/* Right Side Image */}
+      <motion.div 
+        initial={{ opacity: 0, x: 100 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1, delay: 0.5 }}
+        className="fixed right-0 top-0 bottom-0 w-[26%] hidden md:block"
+        style={{
+          backgroundImage: `url(${registrationImage2})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-l from-zunzo-primary/60 to-transparent mix-blend-multiply" />
+      </motion.div>
+
+      {/* Registration Form Container */}
+      <div className="container mx-auto relative z-10 md:px-24">
+        {showPaynowCheckout && <PaynowFloatingTab />}
+        <motion.h1 
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-4xl font-bold text-center mb-8 text-white"
+        >
+          OM³ Registration
+        </motion.h1>
+        <div className="w-full px-4">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8">
             {step < 4 && (
-              <>
-                <h1 className="text-3xl font-bold text-center mb-8 text-black">
-                  Register for Tuku Legacy Half Marathon
-                </h1>
-                {renderStepIndicator()}
-              </>
+              <div className="flex justify-center mb-8">
+                {steps.map((stepItem) => (
+                  <div 
+                    key={stepItem.number}
+                    className={`flex items-center ${
+                      step === stepItem.number 
+                        ? 'text-primary' 
+                        : 'text-gray-400'
+                    }`}
+                  >
+                    <stepItem.icon className="mr-2" />
+                    <span className="font-semibold">{stepItem.title}</span>
+                    {stepItem.number < steps.length && (
+                      <div className="mx-4 w-12 h-0.5 bg-gray-300" />
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
-            
             <form onSubmit={handleSubmit}>
               {step === 1 && renderPersonalInfo()}
               {step === 2 && renderRaceDetails()}
