@@ -19,6 +19,13 @@ export default {
       },
       animation: {
         'spin-slow': 'spin 8s linear infinite',
+        'border-gradient': 'borderGradient 5s ease infinite',
+      },
+      keyframes: {
+        borderGradient: {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
       },
       backgroundColor: theme => ({
         ...theme('colors'),

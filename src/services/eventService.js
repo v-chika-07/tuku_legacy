@@ -18,12 +18,18 @@ export const fetchEvents = async () => {
 
     const querySnapshot = await getDocs(q);
     
-    const events = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const events = querySnapshot.docs.map(doc => {
+      const eventData = doc.data();
+      console.log(`Event ${doc.id} Data:`, eventData);
+      return {
+        id: doc.id,
+        ticketSales: 0,  // Default value
+        revenue: 0,      // Default value
+        ...eventData
+      };
+    });
 
-    console.log('Fetched Events:', events);
+    console.log('Fetched Events Full Details:', events);
     
     return events;
   } catch (error) {

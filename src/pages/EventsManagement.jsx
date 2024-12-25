@@ -12,6 +12,7 @@ import {
 import { toast } from 'react-toastify';
 import { db } from '../firebase/config';
 import { FaCalendarAlt, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import { uploadImage } from '../services/uploadService';
 
 const EventsManagement = () => {
   const [events, setEvents] = useState([]);
@@ -24,9 +25,19 @@ const EventsManagement = () => {
     endDate: '', // for multi-day events
     description: '',
     location: '',
-    registrationFee: ''
+    status: 'standby', 
+    ticketTypes: [] || null,
+    ticketSales: 0,
+    revenue: 0,
+    imageUrl: ''
   });
   const [editingEvent, setEditingEvent] = useState(null);
+  const [newTicketType, setNewTicketType] = useState({
+    name: '',
+    price: '',
+    description: ''
+  });
+  const [eventImage, setEventImage] = useState(null);
 
   useEffect(() => {
     const eventsQuery = query(collection(db, 'events'));
@@ -72,19 +83,60 @@ const EventsManagement = () => {
         return;
       }
 
-      await addDoc(collection(db, 'events'), newEvent);
-      toast.success('Event added successfully');
-      setNewEvent({
-        name: '',
-        eventType: 'single',
-        date: '',
-        startDate: '',
-        endDate: '',
-        description: '',
-        location: '',
-        registrationFee: ''
+      // Validate ticket types
+      if (!newEvent.ticketTypes || newEvent.ticketTypes.length === 0) {
+        toast.error('Please add at least one ticket type');
+        return;
+      }
+
+      // Log the full event data before adding
+      console.log('Adding Event:', {
+        ...newEvent,
+        ticketTypes: newEvent.ticketTypes || []
       });
-      setShowEventForm(false);
+
+      const eventToAdd = { ...newEvent };
+      
+      // Upload image if exists
+      let imageUrl = null;
+      if (eventImage && eventImage.file) {
+        try {
+          imageUrl = await uploadImage(eventImage.file);
+        } catch (uploadError) {
+          toast.error('Failed to upload image');
+          return;
+        }
+      }
+
+      // Add image URL to event if uploaded
+      if (imageUrl) {
+        eventToAdd.imageUrl = imageUrl;
+      }
+
+      // Create event first to get the ID for image upload
+      const result = await addDoc(collection(db, 'events'), eventToAdd);
+      
+      if (result.id) {
+        toast.success('Event added successfully');
+        setNewEvent({
+          name: '',
+          eventType: 'single',
+          date: '',
+          startDate: '',
+          endDate: '',
+          description: '',
+          location: '',
+          status: 'standby',
+          ticketTypes: [],
+          ticketSales: 0,
+          revenue: 0,
+          imageUrl: ''
+        });
+        setEventImage(null);
+        setShowEventForm(false);
+      } else {
+        toast.error('Failed to add event');
+      }
     } catch (error) {
       console.error("Error adding event:", error);
       toast.error('Failed to add event');
@@ -113,8 +165,24 @@ const EventsManagement = () => {
         return;
       }
 
+      // Validate ticket types
+      if (!newEvent.ticketTypes || newEvent.ticketTypes.length === 0) {
+        toast.error('Please add at least one ticket type');
+        return;
+      }
+
+      // Log the full event data before updating
+      console.log('Updating Event:', {
+        ...newEvent,
+        ticketTypes: newEvent.ticketTypes || []
+      });
+
       const eventRef = doc(db, 'events', editingEvent.id);
-      await updateDoc(eventRef, newEvent);
+      await updateDoc(eventRef, {
+        ...newEvent,
+        ticketTypes: newEvent.ticketTypes || [] // Ensure ticket types are added
+      });
+      
       toast.success('Event updated successfully');
       setEditingEvent(null);
       setNewEvent({
@@ -125,7 +193,11 @@ const EventsManagement = () => {
         endDate: '',
         description: '',
         location: '',
-        registrationFee: ''
+        status: 'standby',
+        ticketTypes: [],
+        ticketSales: 0,
+        revenue: 0,
+        imageUrl: ''
       });
       setShowEventForm(false);
     } catch (error) {
@@ -148,6 +220,64 @@ const EventsManagement = () => {
     setEditingEvent(event);
     setNewEvent({ ...event });
     setShowEventForm(true);
+    
+    // Scroll to top smoothly
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
+  const handleAddTicketType = () => {
+    // Validate ticket type
+    if (!newTicketType.name || !newTicketType.price) {
+      toast.error('Please provide ticket type name and price');
+      return;
+    }
+
+    // Add ticket type to event
+    setNewEvent(prev => ({
+      ...prev,
+      ticketTypes: [
+        ...prev.ticketTypes, 
+        {
+          ...newTicketType,
+          id: Date.now().toString() // Unique identifier
+        }
+      ]
+    }));
+
+    // Reset ticket type form
+    setNewTicketType({
+      name: '',
+      price: '',
+      description: ''
+    });
+  };
+
+  const handleRemoveTicketType = (ticketId) => {
+    setNewEvent(prev => ({
+      ...prev,
+      ticketTypes: prev.ticketTypes.filter(ticket => ticket.id !== ticketId)
+    }));
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEventImage({
+          file: file,
+          preview: reader.result
+        });
+        setNewEvent(prev => ({
+          ...prev,
+          imageUrl: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -195,7 +325,11 @@ const EventsManagement = () => {
                 endDate: '',
                 description: '',
                 location: '',
-                registrationFee: ''
+                status: 'standby',
+                ticketTypes: [],
+                ticketSales: 0,
+                revenue: 0,
+                imageUrl: ''
               });
             }}
             className="bg-white/20 text-white px-6 py-2 rounded-lg hover:bg-white/30 transition-colors flex items-center justify-center mx-auto"
@@ -302,15 +436,112 @@ const EventsManagement = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-white mb-2">Registration Fee</label>
+                    <label className="block text-white mb-2">Event Image</label>
                     <input
-                      type="number"
-                      name="registrationFee"
-                      value={newEvent.registrationFee}
-                      onChange={handleInputChange}
+                      type="file"
+                      name="imageUrl"
+                      onChange={handleImageUpload}
+                      accept="image/*"
                       className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
-                      required
                     />
+                    {(eventImage || newEvent.imageUrl) && (
+                      <div className="mt-4 flex justify-center">
+                        <img 
+                          src={eventImage?.preview || newEvent.imageUrl} 
+                          alt="Event Preview" 
+                          className="w-64 h-40 object-cover rounded-lg shadow-md"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Ticket Types */}
+                <div className="mt-4">
+                  <h3 className="text-white mb-2">Ticket Types</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-white mb-2">Ticket Type Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={newTicketType.name}
+                        onChange={(e) => setNewTicketType(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-white mb-2">Ticket Type Price</label>
+                      <input
+                        type="number"
+                        name="price"
+                        value={newTicketType.price}
+                        onChange={(e) => setNewTicketType(prev => ({ ...prev, price: e.target.value }))}
+                        className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <label className="block text-white mb-2">Ticket Type Description</label>
+                    <textarea
+                      name="description"
+                      value={newTicketType.description}
+                      onChange={(e) => setNewTicketType(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddTicketType}
+                    className="bg-white/20 text-white px-6 py-2 rounded-lg hover:bg-white/30 transition-colors mt-4"
+                  >
+                    Add Ticket Type
+                  </button>
+                  {newEvent.ticketTypes.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="text-white mb-2">Added Ticket Types</h4>
+                      <ul>
+                        {newEvent.ticketTypes.map(ticket => (
+                          <li key={ticket.id} className="flex justify-between items-center mb-2">
+                            <span className="text-white">{ticket.name} - {ticket.price}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTicketType(ticket.id)}
+                              className="text-red-500/70 hover:text-red-500 transition-colors"
+                            >
+                              <FaTrash />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                {/* Status Toggle */}
+                <div className="mb-4">
+                  <label className="block text-white mb-2">Event Status</label>
+                  <div className="flex items-center space-x-4">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        name="status"
+                        value="live"
+                        checked={newEvent.status === 'live'}
+                        onChange={handleInputChange}
+                        className="form-radio text-accent"
+                      />
+                      <span className="ml-2 text-green-300">{event.status === 'live' ? 'Live' : 'Standby'}</span>
+                    </label>
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        name="status"
+                        value="standby"
+                        checked={newEvent.status === 'standby'}
+                        onChange={handleInputChange}
+                        className="form-radio text-accent"
+                      />
+                      <span className="ml-2 text-yellow-300">{event.status === 'live' ? 'Live' : 'Standby'}</span>
+                    </label>
                   </div>
                 </div>
                 <div className="mt-6 flex justify-end">
@@ -333,10 +564,14 @@ const EventsManagement = () => {
                         endDate: '',
                         description: '',
                         location: '',
-                        registrationFee: ''
+                        status: 'standby',
+                        ticketTypes: [],
+                        ticketSales: 0,
+                        revenue: 0,
+                        imageUrl: ''
                       });
                     }}
-                    className="ml-4 bg-red-500/20 text-white px-6 py-2 rounded-lg hover:bg-red-500/30 transition-colors"
+                    className="ml-4 bg-red-500/20 text-red-300 px-6 py-2 rounded-lg hover:bg-red-500/30 transition-colors"
                   >
                     Cancel
                   </button>
@@ -358,35 +593,89 @@ const EventsManagement = () => {
             {events.length === 0 ? (
               <p className="text-white/60 text-center">No events found</p>
             ) : (
-              <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-6">
                 {events.map(event => (
-                  <motion.div
+                  <motion.div 
                     key={event.id}
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: 0 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="bg-white/20 rounded-lg p-4 flex justify-between items-center"
+                    className="bg-white rounded-lg p-4 flex space-x-6 shadow-lg overflow-hidden"
                   >
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">{event.name}</h3>
-                      {event.eventType === 'single' ? (
-                        <p className="text-white/60">{event.date} | {event.location}</p>
-                      ) : (
-                        <p className="text-white/60">{event.startDate} - {event.endDate} | {event.location}</p>
-                      )}
+                    {/* Event Image */}
+                    <div className="w-1/3 flex-shrink-0">
+                      <img 
+                        src={event.imageUrl || 'https://via.placeholder.com/300x200.png?text=Event+Image'} 
+                        alt={event.name}
+                        className="w-full h-56 object-cover rounded-lg"
+                      />
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => startEditing(event)}
-                        className="text-white/70 hover:text-white transition-colors"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteEvent(event.id)}
-                        className="text-red-500/70 hover:text-red-500 transition-colors"
-                      >
-                        <FaTrash />
-                      </button>
+
+                    {/* Event Details */}
+                    <div className="flex-grow flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center space-x-4 mb-2">
+                          <h2 className="text-black font-bold text-xl truncate max-w-full">{event.name}</h2>
+                          <span 
+                            className={`px-3 py-1 rounded-full text-xs font-bold ${
+                              event.status === 'live' 
+                                ? 'bg-green-500/20 text-green-700' 
+                                : 'bg-yellow-500/20 text-yellow-700'
+                            }`}
+                          >
+                            {event.status === 'live' ? 'Live' : 'Standby'}
+                          </span>
+                        </div>
+                        {event.eventType === 'single' ? (
+                          <p className="text-gray-700 mb-2">{event.date} | {event.location}</p>
+                        ) : (
+                          <p className="text-gray-700 mb-2">{event.startDate} - {event.endDate} | {event.location}</p>
+                        )}
+
+                        {event.ticketTypes && event.ticketTypes.length > 0 && (
+                          <div className="flex space-x-2 mb-2">
+                            {event.ticketTypes.map(ticket => (
+                              <span 
+                                key={ticket.id} 
+                                className="px-2 py-1 bg-gray-100 text-black rounded-full text-xs"
+                              >
+                                {ticket.name}: ${ticket.price}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Event Sales Statistics */}
+                      <div className="grid grid-cols-2 gap-4 bg-gray-100 p-4 rounded-lg mb-2">
+                        <div className="flex flex-col items-center">
+                          <span className="text-gray-600 text-sm mb-1">Ticket Sales</span>
+                          <span className="text-black text-2xl font-bold">
+                            {event.ticketSales || 0}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span className="text-gray-600 text-sm mb-1">Total Revenue</span>
+                          <span className="text-black text-2xl font-bold">
+                            <span className="text-green-600">$</span>{(event.revenue || 0).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Event Actions */}
+                      <div className="flex justify-start">
+                        <button
+                          onClick={() => startEditing(event)}
+                          className="bg-gray-200 text-black px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors mr-2"
+                        >
+                          <FaEdit className="inline-block mr-2" /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEvent(event.id)}
+                          className="bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors"
+                        >
+                          <FaTrash className="inline-block mr-2" /> Delete
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}

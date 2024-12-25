@@ -10,6 +10,8 @@ import {
 } from 'react-icons/fa';
 import { fetchEvents } from '../services/eventService';
 import defaultEventImage from '../assets/images/IMG-20241218-WA0005.jpg';
+import image1 from '../assets/images/IMG-20241218-WA0007.jpg';
+import image2 from '../assets/images/IMG-20241218-WA0008.jpg';
 
 const EventHero = ({ event, index }) => {
   // Define gradient colors using the app's theme, switching start and end
@@ -18,6 +20,11 @@ const EventHero = ({ event, index }) => {
     { from: 'from-zunzo-primary', to: 'to-zunzo-secondary' },
     { from: 'from-zunzo-accent', to: 'to-zunzo-primary' },
     { from: 'from-zunzo-primary', to: 'to-zunzo-accent' },
+    { from: 'from-zunzo-secondary', to: 'to-zunzo-accent' },
+    { from: 'from-zunzo-accent', to: 'to-zunzo-secondary' },
+    { from: 'from-zunzo-primary', to: 'to-zunzo-secondary' },
+    { from: 'from-zunzo-secondary', to: 'to-zunzo-primary' },
+    { from: 'from-zunzo-accent', to: 'to-zunzo-secondary' },
     { from: 'from-zunzo-secondary', to: 'to-zunzo-accent' }
   ];
 
@@ -32,85 +39,89 @@ const EventHero = ({ event, index }) => {
     date: event?.date || '',
     startDate: event?.startDate || '',
     endDate: event?.endDate || '',
-    description: event?.description || 'No description available',
+    description: event?.description 
+      ? `Join us for an exciting ${event.eventType === 'multi' ? 'multi-day' : 'single-day'} running experience! ${event.description}` 
+      : 'Get ready for an incredible running event that challenges and inspires. Stay tuned for more details!',
     location: event?.location || 'TBA',
-    registrationFee: event?.registrationFee || 'TBA',
-    imageUrl: event?.imageUrl || defaultEventImage
+    ticketTypes: event?.ticketTypes || [],
+    imageUrl: event?.imageUrl || defaultEventImage,
+    status: event?.status || 'live'
   };
+
+  // Debug logging
+  console.log('Event Object:', event);
+  console.log('Safe Event:', safeEvent);
 
   // Determine date display based on event type
   const eventDateDisplay = safeEvent.eventType === 'multi' 
     ? `${safeEvent.startDate} - ${safeEvent.endDate}` 
     : safeEvent.date;
 
-  // Format registration fee with dollar sign
-  const formattedRegistrationFee = safeEvent.registrationFee === 'TBA' 
-    ? 'TBA' 
-    : `$${safeEvent.registrationFee}`;
-
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.2 }}
-      className={`relative bg-gradient-to-br ${from} ${to} text-white py-20 my-8`}
+    <motion.div 
+      key={safeEvent.id}
+      initial={{ opacity: 0, x: 0 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="bg-white rounded-lg p-4 flex space-x-6 shadow-lg overflow-hidden"
     >
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
-            {/* Event Image */}
-            <div className="w-full md:w-1/3 rounded-lg overflow-hidden shadow-lg">
-              <img 
-                src={safeEvent.imageUrl} 
-                alt={safeEvent.name} 
-                className="w-full h-64 object-cover"
-              />
-            </div>
+      {/* Event Image */}
+      <div className="w-1/3 flex-shrink-0">
+        <img 
+          src={safeEvent.imageUrl} 
+          alt={safeEvent.name}
+          className="w-full h-56 object-cover rounded-lg"
+        />
+      </div>
 
-            {/* Event Details */}
-            <div className="w-full md:w-2/3">
-              <h2 className="text-3xl font-bold mb-4">{safeEvent.name}</h2>
-              
-              {/* Event Type and Date */}
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="flex items-center space-x-2">
-                  <FaRunning className="text-white text-xl" />
-                  <span className="text-sm uppercase">
-                    {safeEvent.eventType === 'multi' ? 'Multi-Day Event' : 'Single Day Event'}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <FaCalendarAlt className="text-white text-xl" />
-                  <span>{eventDateDisplay}</span>
-                </div>
-              </div>
-
-              {/* Location */}
-              <div className="flex items-center space-x-2 mb-4">
-                <FaMapMarkerAlt className="text-white text-xl" />
-                <span>{safeEvent.location}</span>
-              </div>
-
-              {/* Description */}
-              <p className="mb-4 opacity-90">{safeEvent.description}</p>
-
-              {/* Registration */}
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <FaTicketAlt className="text-white text-xl" />
-                  <span>Registration Fee: {formattedRegistrationFee}</span>
-                </div>
-                <Link to={`/registration?eventId=${safeEvent.id}`}>
-                  <button className="bg-white text-black px-4 py-2 rounded-full hover:bg-opacity-90 transition-colors">
-                    Register Now
-                  </button>
-                </Link>
-              </div>
-            </div>
+      {/* Event Details */}
+      <div className="flex-grow flex flex-col justify-between">
+        <div>
+          <div className="flex items-center space-x-4 mb-2">
+            <h2 className="text-black font-bold text-xl truncate max-w-full text-left">{safeEvent.name}</h2>
           </div>
+          {safeEvent.eventType === 'single' ? (
+            <p className="text-gray-700 mb-2 text-left">{safeEvent.date} | {safeEvent.location}</p>
+          ) : (
+            <p className="text-gray-700 mb-2 text-left">{safeEvent.startDate} - {safeEvent.endDate} | {safeEvent.location}</p>
+          )}
+
+          {/* Event Description */}
+          <div className="mb-4">
+            <h3 className="text-black font-semibold mb-2 text-left">Event Description</h3>
+            <p className="text-gray-700 text-left">{safeEvent.description}</p>
+          </div>
+
+          {safeEvent.ticketTypes && safeEvent.ticketTypes.length > 0 && (
+            <div className="flex space-x-2 mb-2">
+              {safeEvent.ticketTypes.map(ticket => (
+                <span 
+                  key={ticket.id} 
+                  className="px-2 py-1 bg-gray-100 text-black rounded-full text-xs"
+                >
+                  {ticket.name}: ${ticket.price}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Buy Tickets Button */}
+        <div className="mt-4">
+          <Link to={`/registration?eventId=${safeEvent.id}`}>
+            <button
+              className={`w-full px-6 py-3 rounded-lg transition-colors ${
+                safeEvent.status === 'live' 
+                  ? 'bg-accent text-white hover:bg-accent-dark' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              disabled={safeEvent.status !== 'live'}
+            >
+              {safeEvent.status === 'live' ? 'Buy Tickets' : 'Coming Soon'}
+            </button>
+          </Link>
         </div>
       </div>
-    </motion.section>
+    </motion.div>
   );
 };
 
@@ -157,36 +168,18 @@ const Events = () => {
   }
 
   return (
-    <div className="pt-20">
-      {/* Main Events Hero Section */}
-      <motion.section 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-        className="relative bg-gradient-to-br from-zunzo-primary via-zunzo-secondary to-zunzo-accent text-white py-20"
-      >
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">Zunzo Running Club Events</h1>
-            <p className="text-xl mb-8 text-white">
-              Discover our upcoming running events that inspire community wellness, 
-              promote health awareness, and bring runners together through shared passion and achievement.
-            </p>
-          </div>
+    <div className="pt-20 min-h-screen relative">
+      <div className="container mx-auto px-4 mb-12">
+        <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-8 shadow-lg">
+          <h1 className="text-4xl font-bold text-white text-center">Upcoming Events</h1>
         </div>
-      </motion.section>
-
-      {/* Events List */}
-      <div>
-        {events.length === 0 ? (
-          <div className="text-center py-20 bg-gray-100">
-            <p className="text-2xl text-gray-600">No events found. Please check back later.</p>
-          </div>
-        ) : (
-          events.map((event, index) => (
+      </div>
+      <div className="container mx-auto px-4">
+        <div className="space-y-8">
+          {events.map((event, index) => (
             <EventHero key={event.id} event={event} index={index} />
-          ))
-        )}
+          ))}
+        </div>
       </div>
     </div>
   );
