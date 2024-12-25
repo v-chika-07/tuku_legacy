@@ -12,7 +12,9 @@ export default defineConfig({
           vendor: ['react', 'react-dom', 'react-router-dom'],
           firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth'],
         }
-      }
+      },
+      // Add this to resolve CSS imports
+      external: [/^leaflet\/.*/]
     },
     chunkSizeWarningLimit: 1000,
     sourcemap: false
@@ -21,6 +23,13 @@ export default defineConfig({
     port: parseInt(process.env.VITE_PORT) || 3007,
     open: true,
     host: true, // Listen on all local IPs
-
+  },
+  css: {
+    // Add this to handle CSS imports
+    preprocessorOptions: {
+      css: {
+        includePaths: ['node_modules']
+      }
+    }
   }
 });
