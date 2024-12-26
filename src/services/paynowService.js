@@ -3,14 +3,12 @@ import {
   collection, 
   query, 
   where, 
-  limit, 
   updateDoc,
-  getDocs,
-  serverTimestamp,
   getDoc,
-  addDoc,
   doc,
-  onSnapshot
+  onSnapshot,
+  serverTimestamp,
+  addDoc
 } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { processPaynowNotification, handlePaynowReturn } from './paynowNotificationService';
@@ -23,7 +21,7 @@ const RETURN_URL = import.meta.env.VITE_PAYNOW_RETURN_URL;
 const RESULT_URL = import.meta.env.VITE_PAYNOW_RESULT_URL;
 const NOTIFICATION_URL = 'https://www.zunzorunningclub.com/paynow/notification';
 
-export const initializePaynowTransaction = async (cart, userEmail, user) => {
+export const initializePaynowTransaction = async (cart, userEmail, user, transactionType = 'default') => {
   try {
     // Calculate total (now using direct cart array)
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -31,11 +29,22 @@ export const initializePaynowTransaction = async (cart, userEmail, user) => {
     // Generate transaction reference
     const transactionRef = `T_legacy_${Date.now()}`;
 
-    // Create pending order first
-    const pendingOrderResult = await createPendingPaynowOrder(cart, user, transactionRef);
-    
-    if (!pendingOrderResult.success) {
-      throw new Error('Failed to create pending order');
+    // For cart transactions, create a pending order
+    let pendingOrderId = null;
+    if (transactionType === 'default') {
+      const db = getFirestore();
+      const ordersRef = collection(db, 'orders');
+      const pendingOrderRef = await addDoc(ordersRef, {
+        userId: user.uid,
+        userEmail: userEmail,
+        items: cart,
+        total: total,
+        status: 'Pending',
+        paymentStatus: 'Pending',
+        transactionReference: transactionRef,
+        createdAt: serverTimestamp()
+      });
+      pendingOrderId = pendingOrderRef.id;
     }
 
     // Construct Paynow payment link parameters
@@ -52,45 +61,12 @@ export const initializePaynowTransaction = async (cart, userEmail, user) => {
     return {
       success: true,
       url: paynowPaymentLink,
-      orderId: pendingOrderResult.orderId,
+      orderId: transactionRef,
+      pendingOrderId: pendingOrderId,
       transactionReference: transactionRef
     };
   } catch (error) {
     console.error('Paynow Transaction Initialization Error:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-};
-
-export const createPendingPaynowOrder = async (cart, user, transactionRef) => {
-  try {
-    const db = getFirestore();
-    const ordersRef = collection(db, 'orders');
-
-    // Create order document
-    const orderData = {
-      userId: user.uid,
-      userEmail: user.email,
-      transactionReference: transactionRef,
-      items: cart, // Now directly using cart array
-      total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-      status: 'Pending',
-      createdAt: new Date().toISOString(),
-      paymentMethod: 'Paynow',
-      paymentStatus: 'Pending'
-    };
-
-    // Add order to Firestore
-    const orderDocRef = await addDoc(ordersRef, orderData);
-
-    return {
-      success: true,
-      orderId: orderDocRef.id
-    };
-  } catch (error) {
-    console.error('Create Pending Paynow Order Error:', error);
     return {
       success: false,
       error: error.message
@@ -208,12 +184,56 @@ export const listenForPaynowTransaction = async (
               });
               break;
 
-            case 'order':
-              // Update the order document's payment status
-              const orderRef = doc(db, 'orders', orderId);
-              
+          
+
+            case 'ticket_purchase':
+              // Ensure ticket purchase data is available
+              if (!additionalData?.ticketPurchaseData) {
+                console.error('No ticket purchase data found');
+                callback({
+                  success: false,
+                  error: 'No ticket purchase data available'
+                });
+                return;
+              }
+
+              // Create ticket purchase record
+              const ticketPurchasesRef = collection(db, 'ticket_purchases');
+              const ticketPurchaseDocRef = await addDoc(ticketPurchasesRef, {
+                ...additionalData.ticketPurchaseData,
+                paynow_reference: paynowReference,
+                paymentStatus: 'completed',
+                createdAt: serverTimestamp(),
+                purchaseDate: new Date().toISOString()
+              });
+
+              // Call callback to handle UI updates
+              callback({
+                success: true,
+                orderId: orderId,
+                ticketPurchaseId: ticketPurchaseDocRef.id,
+                paynowReference: paynowReference
+              });
+              break;
+
+            default:
+              // Ensure order data is available
+              if (!additionalData?.pendingOrderId) {
+                console.error('No pending order found');
+                callback({
+                  success: false,
+                  error: 'No pending order available'
+                });
+                return;
+              }
+
+              // Create reference to the existing pending order
+              const orderRef = doc(db, 'orders', additionalData.pendingOrderId);
+
+              // Update the existing pending order
               await updateDoc(orderRef, {
-                paymentStatus: 'Paid',
+                paymentStatus: 'Completed',
+                paynow_reference: paynowReference,
                 paidAt: new Date().toISOString()
               });
 
@@ -223,19 +243,10 @@ export const listenForPaynowTransaction = async (
                 transactionData: {
                   ...transactionData,
                   paynow_reference: paynowReference
-                }
+                },
+                orderId: additionalData.pendingOrderId
               });
               break;
-
-            default:
-              // Default handling for other transaction types
-              callback({
-                success: true,
-                transactionData: {
-                  ...transactionData,
-                  paynow_reference: paynowReference
-                }
-              });
           }
 
           // Unsubscribe from both listeners

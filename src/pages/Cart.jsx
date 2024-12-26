@@ -10,9 +10,7 @@ import PayPalCheckout from '../components/PayPalCheckout';
 import { toast } from 'react-toastify';
 import { 
   initializePaynowTransaction, 
-  createPendingPaynowOrder, 
-  listenToOrderStatus,
-  listenForPaynowTransaction
+  listenForPaynowTransaction 
 } from '../services/paynowService';
 
 const Cart = () => {
@@ -101,11 +99,22 @@ const Cart = () => {
 
     setPaynowLoading(true);
     try {
+      // Prepare cart for transaction
+      const processedCart = cart.map(item => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      }));
+
       // Initialize Paynow transaction
       const result = await initializePaynowTransaction(
-        cart,  // Pass cart directly
+        processedCart,  
         user.email, 
-        user
+        { 
+          uid: user.uid,
+          email: user.email
+        },
+        'default'  // Specify transaction type
       );
 
       if (result.success) {
@@ -129,15 +138,26 @@ const Cart = () => {
             result.orderId, 
             async (transactionResult) => {
               if (transactionResult.success) {
-                resolve(transactionResult);
-              } else {
-                reject(new Error(transactionResult.error || 'Payment failed'));
+                try {
+                  // Clear cart after successful payment
+                  await clearUserCart(user.uid);
+                  clearCart();
+                  
+                  resolve(transactionResult);
+                } catch (error) {
+                  reject(error);
+                } finally {
+                  if (typeof unsubscribe === 'function') {
+                    unsubscribe();
+                  }
+                }
               }
-              
-              // Always unsubscribe
-              if (typeof unsubscribe === 'function') {
-                unsubscribe();
-              }
+            },
+            'default',  // Transaction type
+            { 
+              uid: user.uid,
+              email: user.email,
+              pendingOrderId: result.pendingOrderId  // Pass pending order ID
             }
           );
 
@@ -159,9 +179,7 @@ const Cart = () => {
             paymentWindow.close();
           }
 
-          // Clear cart and show success message
-          await clearUserCart(user.uid);
-          clearCart();
+          // Show success message
           toast.success('Payment successful! Your order has been processed.');
           navigate('/order-confirmation');
         } catch (error) {

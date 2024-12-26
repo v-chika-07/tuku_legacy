@@ -19,6 +19,7 @@ import MarathonMerch from './pages/MarathonMerch';
 import Cart from './pages/Cart';
 import OrderDetails from './pages/OrderDetails';
 import OrderSuccess from './pages/OrderSuccess'
+import TicketOrderSuccess from './pages/TicketOrderSuccess';
 import FloatingCart from './components/FloatingCart';
 import FloatingSocialMedia from './components/FloatingSocialMedia';
 import { AuthProvider } from './contexts/AuthContext';
@@ -85,6 +86,7 @@ function App() {
               <Route path="/cart" element={<Cart />} />
               <Route path="/order-details" element={<OrderDetails />} />
               <Route path="/order-confirmation" element={<OrderSuccess />} />
+              <Route path="/ticket-order-success" element={<TicketOrderSuccess />} />
               <Route path="/pakare-paye" element={<PakarePaye />} />
             </Routes>
           </div>

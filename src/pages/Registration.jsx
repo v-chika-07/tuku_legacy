@@ -2,12 +2,10 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FaUser, FaRunning, FaCreditCard, FaCheck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { submitEventRegistration } from '../firebase/services/eventService';
 import { sendRegistrationEmail } from '../services/emailService';
 import { toast } from 'react-toastify';
 import { 
   initializePaynowTransaction, 
-  createPendingPaynowOrder, 
   listenToOrderStatus,
   listenForPaynowTransaction
 } from '../services/paynowService';
@@ -84,25 +82,21 @@ const Registration = () => {
           termsAccepted: formData.termsAccepted
         };
 
-        const result = await submitEventRegistration(registrationData);
-        
-        if (result.success) {
-          // Send confirmation email
-          try {
-            const emailResult = await sendRegistrationEmail(registrationData);
-            console.log('Email service response:', emailResult);
-            toast.success('Registration successful! Check your email for confirmation.');
-          } catch (emailError) {
-            console.error('Email sending failed:', emailError);
-            // Log more details about the error
-            if (emailError.details) {
-              console.error('Detailed error:', emailError.details);
-            }
-            // Still navigate to success page even if email fails
-            toast.warning(`Registration successful, but email failed: ${emailError.error}`);
+        // Send confirmation email
+        try {
+          const emailResult = await sendRegistrationEmail(registrationData);
+          console.log('Email service response:', emailResult);
+          toast.success('Registration successful! Check your email for confirmation.');
+        } catch (emailError) {
+          console.error('Email sending failed:', emailError);
+          // Log more details about the error
+          if (emailError.details) {
+            console.error('Detailed error:', emailError.details);
           }
-          navigate('/registration-success');
+          // Still navigate to success page even if email fails
+          toast.warning(`Registration successful, but email failed: ${emailError.error}`);
         }
+        navigate('/registration-success');
       } catch (error) {
         toast.error('Registration failed. Please try again.');
         console.error('Registration error:', error);
@@ -185,17 +179,10 @@ const Registration = () => {
             async (transactionResult) => {
               if (transactionResult.success) {
                 try {
-                  // Submit registration
-                  const registrationResult = await submitEventRegistration(formData);
+                  // Send confirmation email
+                  await sendRegistrationEmail(formData);
                   
-                  if (registrationResult.success) {
-                    // Send confirmation email
-                    await sendRegistrationEmail(formData);
-                    
-                    resolve(registrationResult);
-                  } else {
-                    reject(new Error('Registration submission failed'));
-                  }
+                  resolve(transactionResult);
                 } catch (error) {
                   reject(error);
                 } finally {
@@ -220,8 +207,7 @@ const Registration = () => {
             if (typeof unsubscribe === 'function') {
               unsubscribe();
             }
-            reject(new Error('Payment verification timed out'));
-          }, 5 * 60 * 1000); // 5 minutes timeout
+          }, 15 * 60 * 1000); // 15 minutes timeout
         });
 
         try {

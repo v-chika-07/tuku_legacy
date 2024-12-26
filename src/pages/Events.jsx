@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { 
   FaCalendarAlt, 
   FaMapMarkerAlt, 
@@ -12,6 +11,7 @@ import { fetchEvents } from '../services/eventService';
 import defaultEventImage from '../assets/images/IMG-20241218-WA0005.jpg';
 import image1 from '../assets/images/IMG-20241218-WA0007.jpg';
 import image2 from '../assets/images/IMG-20241218-WA0008.jpg';
+import TicketPurchaseModal from '../components/TicketPurchaseModal';
 
 const EventHero = ({ event, index }) => {
   // Define gradient colors using the app's theme, switching start and end
@@ -48,6 +48,8 @@ const EventHero = ({ event, index }) => {
     status: event?.status || 'live'
   };
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   // Debug logging
   console.log('Event Object:', event);
   console.log('Safe Event:', safeEvent);
@@ -58,57 +60,66 @@ const EventHero = ({ event, index }) => {
     : safeEvent.date;
 
   return (
-    <motion.div 
-      key={safeEvent.id}
-      initial={{ opacity: 0, x: 0 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="bg-white rounded-lg p-4 flex space-x-6 shadow-lg overflow-hidden"
-    >
-      {/* Event Image */}
-      <div className="w-1/3 flex-shrink-0">
-        <img 
-          src={safeEvent.imageUrl} 
-          alt={safeEvent.name}
-          className="w-full h-56 object-cover rounded-lg"
-        />
-      </div>
-
-      {/* Event Details */}
-      <div className="flex-grow flex flex-col justify-between">
-        <div>
-          <div className="flex items-center space-x-4 mb-2">
-            <h2 className="text-black font-bold text-xl truncate max-w-full text-left">{safeEvent.name}</h2>
-          </div>
-          {safeEvent.eventType === 'single' ? (
-            <p className="text-gray-700 mb-2 text-left">{safeEvent.date} | {safeEvent.location}</p>
-          ) : (
-            <p className="text-gray-700 mb-2 text-left">{safeEvent.startDate} - {safeEvent.endDate} | {safeEvent.location}</p>
-          )}
-
-          {/* Event Description */}
-          <div className="mb-4">
-            <h3 className="text-black font-semibold mb-2 text-left">Event Description</h3>
-            <p className="text-gray-700 text-left">{safeEvent.description}</p>
-          </div>
-
-          {safeEvent.ticketTypes && safeEvent.ticketTypes.length > 0 && (
-            <div className="flex space-x-2 mb-2">
-              {safeEvent.ticketTypes.map(ticket => (
-                <span 
-                  key={ticket.id} 
-                  className="px-2 py-1 bg-gray-100 text-black rounded-full text-xs"
-                >
-                  {ticket.name}: ${ticket.price}
-                </span>
-              ))}
-            </div>
-          )}
+    <>
+      <motion.div 
+        key={safeEvent.id}
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ 
+          opacity: 1, 
+          y: 0,
+          transition: { 
+            duration: 0.6, 
+            delay: index * 0.2,  // Stagger the animation based on index
+            ease: "easeOut" 
+          } 
+        }}
+        className="bg-white rounded-lg p-4 flex space-x-6 shadow-lg overflow-hidden"
+      >
+        {/* Event Image */}
+        <div className="w-1/3 flex-shrink-0">
+          <img 
+            src={safeEvent.imageUrl} 
+            alt={safeEvent.name}
+            className="w-full h-56 object-cover rounded-lg"
+          />
         </div>
 
-        {/* Buy Tickets Button */}
-        <div className="mt-4">
-          <Link to={`/registration?eventId=${safeEvent.id}`}>
+        {/* Event Details */}
+        <div className="flex-grow flex flex-col justify-between">
+          <div>
+            <div className="flex items-center space-x-4 mb-2">
+              <h2 className="text-black font-bold text-xl truncate max-w-full text-left">{safeEvent.name}</h2>
+            </div>
+            {safeEvent.eventType === 'single' ? (
+              <p className="text-gray-700 mb-2 text-left">{safeEvent.date} | {safeEvent.location}</p>
+            ) : (
+              <p className="text-gray-700 mb-2 text-left">{safeEvent.startDate} - {safeEvent.endDate} | {safeEvent.location}</p>
+            )}
+
+            {/* Event Description */}
+            <div className="mb-4">
+              <h3 className="text-black font-semibold mb-2 text-left">Event Description</h3>
+              <p className="text-gray-700 text-left">{safeEvent.description}</p>
+            </div>
+
+            {safeEvent.ticketTypes && safeEvent.ticketTypes.length > 0 && (
+              <div className="flex space-x-2 mb-2">
+                {safeEvent.ticketTypes.map(ticket => (
+                  <span 
+                    key={ticket.id} 
+                    className="px-2 py-1 bg-gray-100 text-black rounded-full text-xs"
+                  >
+                    {ticket.name}: ${ticket.price}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Buy Tickets Button */}
+          <div className="mt-4">
             <button
+              onClick={() => setIsModalOpen(true)}
               className={`w-full px-6 py-3 rounded-lg transition-colors ${
                 safeEvent.status === 'live' 
                   ? 'bg-accent text-white hover:bg-accent-dark' 
@@ -118,10 +129,17 @@ const EventHero = ({ event, index }) => {
             >
               {safeEvent.status === 'live' ? 'Buy Tickets' : 'Coming Soon'}
             </button>
-          </Link>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+
+      {/* Ticket Purchase Modal */}
+      <TicketPurchaseModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        event={safeEvent} 
+      />
+    </>
   );
 };
 
