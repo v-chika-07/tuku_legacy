@@ -15,10 +15,10 @@ import { processPaynowNotification, handlePaynowReturn } from './paynowNotificat
 import { sendRegistrationEmail } from './emailService';
 
 // Paynow configuration
-const MERCHANT_ID = import.meta.env.VITE_PAYNOW_INTEGRATION_ID;
-const INTEGRATION_KEY = import.meta.env.VITE_PAYNOW_INTEGRATION_KEY;
-const RETURN_URL = import.meta.env.VITE_PAYNOW_RETURN_URL;
-const RESULT_URL = import.meta.env.VITE_PAYNOW_RESULT_URL;
+const MERCHANT_ID = '19725';
+const INTEGRATION_KEY = '4fe1bd4a-c9f7-4f62-a90a-0a16d32debab';
+const RETURN_URL = 'https://example.com/paynow/return';
+const RESULT_URL = 'https://example.com/paynow/result';
 const NOTIFICATION_URL = 'https://www.zunzorunningclub.com/paynow/notification';
 
 export const initializePaynowTransaction = async (cart, userEmail, user, transactionType = 'default') => {
@@ -37,12 +37,13 @@ export const initializePaynowTransaction = async (cart, userEmail, user, transac
       const pendingOrderRef = await addDoc(ordersRef, {
         userId: user.uid,
         userEmail: userEmail,
+        updatedAt: new Date().toISOString(),
         items: cart,
         total: total,
         status: 'Pending',
         paymentStatus: 'Pending',
         transactionReference: transactionRef,
-        createdAt: serverTimestamp()
+        createdAt: new Date().toISOString()
       });
       pendingOrderId = pendingOrderRef.id;
     }
@@ -52,11 +53,18 @@ export const initializePaynowTransaction = async (cart, userEmail, user, transac
       id: MERCHANT_ID,
       amount: total.toFixed(2),
       amount_quantity: '0.00',
-      l: '1' // Likely a language or additional parameter
+      l: '1', // Likely a language or additional parameter
+      reference: transactionRef, // Add transaction reference
+      returnurl: RETURN_URL, // Add return URL
+      resulturl: RESULT_URL, // Add result URL
+      status: 'pending', // Add initial status
+      authemail: userEmail // Add customer email
     });
 
     // Generate Paynow payment link
+    console.log(`Generating Paynow payment link for transaction reference ${transactionRef} and user ${userEmail}...`);
     const paynowPaymentLink = `https://www.paynow.co.zw/Payment/BillPaymentLink/?q=${btoa(paymentParams.toString())}`;
+    console.log(`Generated Paynow payment link: ${paynowPaymentLink}`);
 
     return {
       success: true,
@@ -169,7 +177,7 @@ export const listenForPaynowTransaction = async (
                 ...additionalData.registrationData,
                 paynow_reference: paynowReference,
                 paymentStatus: 'completed',
-                createdAt: serverTimestamp(),
+                createdAt: new Date().toISOString(),
                 submittedAt: new Date().toISOString()
               });
 
@@ -203,7 +211,7 @@ export const listenForPaynowTransaction = async (
                 ...additionalData.ticketPurchaseData,
                 paynow_reference: paynowReference,
                 paymentStatus: 'completed',
-                createdAt: serverTimestamp(),
+                createdAt: new Date().toISOString(),
                 purchaseDate: new Date().toISOString()
               });
 

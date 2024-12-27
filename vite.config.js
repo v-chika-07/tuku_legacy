@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
+    sourcemap: true, // Include sourcemaps for debugging
+    minify: false,   
     outDir: 'dist',
     rollupOptions: {
       output: {
