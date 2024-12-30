@@ -55,18 +55,24 @@ const Navbar = () => {
     },
     {
       id: 6,
+      link: '/competition',
+      text: 'COMPETITION',
+      icon: <FaTheaterMasks className="mb-1 mx-auto text-lg" />
+    },
+    {
+      id: 7,
       link: '/marathon',
       text: 'MARATHON',
       icon: <FaRunning className="mb-1 mx-auto text-lg" />
     },
     {
-      id: 7,
+      id: 8,
       link: '/omifa',
       text: 'OMIFA',
       icon: <FaHandsHelping className="mb-1 mx-auto text-lg" />
     },
     {
-      id: 8,
+      id: 9,
       link: '/contact',
       text: 'CONTACT',
       icon: <FaEnvelope className="mb-1 mx-auto text-lg" />

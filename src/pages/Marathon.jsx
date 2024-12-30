@@ -28,11 +28,17 @@ const Marathon = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [countdown, setCountdown] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
 
   // Marathon Event Details
   const marathonEvent = {
     title: 'Oliver Mtukudzi Memorial Half Marathon (OM³)',
-    date: 'March 23, 2024',
+    date: 'February 2, 2025',
     time: '06:00 AM',
     location: 'Norton, Zimbabwe',
     description: 'Join us for the inaugural Oliver Mtukudzi Memorial Half Marathon (OM³), celebrating the life and legacy of Oliver Mtukudzi. This event marks the 50 Years of Tuku Music celebration in 2025, featuring live performances of Tuku classics, including the inspirational "Wasakara" theme song, while promoting health awareness and community wellness.',
@@ -89,6 +95,34 @@ const Marathon = () => {
       return () => clearInterval(autoScrollInterval);
     }
   }, [isHovered]);
+
+  // Countdown Timer Logic
+  useEffect(() => {
+    const targetDate = new Date('2025-02-02T00:00:00+02:00');
+    const currentTime = new Date('2024-12-27T18:50:00+02:00');
+
+    const updateCountdown = () => {
+      const difference = targetDate.getTime() - new Date().getTime();
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setCountdown({ days, hours, minutes, seconds });
+      }
+    };
+
+    // Initial update
+    updateCountdown();
+
+    // Set up interval to update countdown every second
+    const countdownInterval = setInterval(updateCountdown, 1000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(countdownInterval);
+  }, []);
 
   const marathonDetails = [
     {
@@ -157,6 +191,25 @@ const Marathon = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white max-w-[50rem] mx-auto">
               {marathonEvent.title}
             </h1>
+            {/* Countdown Timer */}
+            <div className="flex justify-center space-x-4 mb-6">
+              <div className="text-center">
+                <span className="text-lg font-semibold text-white">{countdown.days}</span>
+                <p className="text-xs text-gray-300">Days</p>
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-semibold text-white">{countdown.hours}</span>
+                <p className="text-xs text-gray-300">Hours</p>
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-semibold text-white">{countdown.minutes}</span>
+                <p className="text-xs text-gray-300">Minutes</p>
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-semibold text-white">{countdown.seconds}</span>
+                <p className="text-xs text-gray-300">Seconds</p>
+              </div>
+            </div>
             <div className="flex flex-wrap gap-6 justify-center text-white mb-6">
               <div className="flex items-center gap-2">
                 <FaCalendar className="text-accent" />

@@ -1,0 +1,126 @@
+/* Competition Page Styles */
+.competition-page {
+  font-family: 'Arial', sans-serif;
+  color: #333;
+  line-height: 1.6;
+}
+
+.competition-header {
+  background-color: #f4a261;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.competition-nav ul {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  padding: 10px 0;
+}
+
+.competition-nav ul li {
+  margin: 0 15px;
+}
+
+.competition-nav ul li a {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.competition-nav ul li a:hover {
+  color: #2a9d8f;
+}
+
+.hero-section {
+  background-size: cover;
+  background-position: center;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+}
+
+.hero-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 50px;
+  border-radius: 10px;
+}
+
+.content-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 50px;
+  background-color: #f8f9fa;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 50px;
+}
+
+.category-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.category-card:hover {
+  transform: scale(1.05);
+}
+
+.category-card img {
+  max-width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.cta-button {
+  display: inline-block;
+  background-color: #2a9d8f;
+  color: white;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+  margin-top: 15px;
+}
+
+.submission-steps {
+  display: flex;
+  justify-content: space-around;
+  padding: 50px;
+}
+
+.contact-section {
+  background-color: #f8f9fa;
+  padding: 50px;
+  display: flex;
+  align-items: center;
+}
+
+.competition-footer {
+  background-color: #264653;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .content-wrapper,
+  .contact-section {
+    flex-direction: column;
+  }
+}

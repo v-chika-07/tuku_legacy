@@ -28,6 +28,7 @@ import './App.css'
 import EventsManagement from './pages/EventsManagement';
 import Marathon from './pages/Marathon';
 import PakarePaye from './pages/PakarePaye';
+import Competition from './pages/Competition';
 
 function App() {
   return (
@@ -88,6 +89,7 @@ function App() {
               <Route path="/order-confirmation" element={<OrderSuccess />} />
               <Route path="/ticket-order-success" element={<TicketOrderSuccess />} />
               <Route path="/pakare-paye" element={<PakarePaye />} />
+              <Route path="/competition" element={<Competition />} />
             </Routes>
           </div>
         </CartProvider>
