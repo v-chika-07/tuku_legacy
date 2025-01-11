@@ -3,8 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   FaInstagram, 
   FaFacebook, 
-  FaTwitter, 
-  FaTiktok 
+  FaTwitter 
 } from 'react-icons/fa';
 
 const FloatingSocialMedia = () => {
@@ -12,22 +11,17 @@ const FloatingSocialMedia = () => {
     { 
       icon: FaInstagram, 
       color: 'bg-pink-500', 
-      link: 'https://www.instagram.com/tuku.legacy' 
+      link: 'https://www.instagram.com/tukumarathon?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==' 
     },
     { 
       icon: FaFacebook, 
       color: 'bg-blue-600', 
-      link: 'https://www.facebook.com/tuku.legacy' 
+      link: 'https://www.facebook.com/profile.php?id=61571704654223' 
     },
     { 
       icon: FaTwitter, 
       color: 'bg-black', 
-      link: 'https://www.x.com/tuku_legacy' 
-    },
-    { 
-      icon: FaTiktok, 
-      color: 'bg-gray-800', 
-      link: 'https://www.tiktok.com/@tuku.legacy' 
+      link: 'https://x.com/tukumarathon' 
     }
   ];
 
