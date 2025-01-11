@@ -111,11 +111,11 @@ const Home = () => {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.9, duration: 0.5 }}
             >
-              <Link to="/registration">
+              <a href="https://onlinetickets.hypenation.co.zw/TheOliverMthukudziMemorialHalfMarathon2025" target="_blank" rel="noopener noreferrer">
                 <button className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 inline-flex items-center">
                   Register Now <FaArrowRight className="ml-2" />
                 </button>
-              </Link>
+              </a>
             </motion.div>
           </div>
         </motion.div>
@@ -195,13 +195,13 @@ const Home = () => {
                 Join us for an unforgettable experience that combines the thrill of running 
                 with the magic of Tuku's musical legacy.
               </p>
-              <Link to="/registration">
+              <a href="https://onlinetickets.hypenation.co.zw/TheOliverMthukudziMemorialHalfMarathon2025" target="_blank" rel="noopener noreferrer">
                 <button className="bg-text-light text-primary px-8 py-4 rounded-2xl 
                   hover:bg-secondary transition-colors duration-300 transform hover:scale-105 
                   font-bold text-lg">
                   Register for the Race
                 </button>
-              </Link>
+              </a>
             </motion.div>
           </div>
         </section>

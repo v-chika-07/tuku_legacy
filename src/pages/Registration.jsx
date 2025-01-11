@@ -11,6 +11,8 @@ import {
 } from '../services/paynowService';
 import registrationImage1 from '../assets/images/IMG-20241218-WA0005.jpg';
 import registrationImage2 from '../assets/images/IMG-20241218-WA0006.jpg';
+import { collection, query, where, getDocs, addDoc, orderBy, limit } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 const Registration = () => {
   const navigate = useNavigate();
@@ -59,10 +61,55 @@ const Registration = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (step < 3) {
+      // Add email uniqueness check before moving to the next step
+      if (step === 1) {
+        // Validate email field
+        if (!formData.email) {
+          toast.error('Please enter an email address');
+          return;
+        }
+
+        // Check for existing email in registrations
+        const registrationsRef = collection(db, 'event_registrations');
+        const emailQuery = query(registrationsRef, where('email', '==', formData.email));
+        
+        try {
+          const existingRegistrations = await getDocs(emailQuery);
+
+          if (!existingRegistrations.empty) {
+            toast.error('This email is already registered for the event.');
+            return;
+          }
+        } catch (error) {
+          console.error('Error checking email uniqueness:', error);
+          toast.error('Unable to verify email. Please try again.');
+          return;
+        }
+      }
+
       setStep(step + 1);
     } else {
       setIsSubmitting(true);
       try {
+        // Generate race number based on race category
+        const registrationsRef = collection(db, 'event_registrations');
+        const raceCategoryQuery = query(
+          registrationsRef, 
+          where('raceCategory', '==', formData.raceCategory),
+          orderBy('raceNumber', 'desc'),
+          limit(1)
+        );
+        
+        const lastRegistrationSnapshot = await getDocs(raceCategoryQuery);
+        let newRaceNumber = '001';
+        
+        if (!lastRegistrationSnapshot.empty) {
+          const lastRegistration = lastRegistrationSnapshot.docs[0].data();
+          const lastRaceNumber = lastRegistration.raceNumber || '000';
+          const nextNumber = parseInt(lastRaceNumber, 10) + 1;
+          newRaceNumber = nextNumber.toString().padStart(3, '0');
+        }
+
         // Remove sensitive payment information before storing
         const registrationData = {
           firstName: formData.firstName,
@@ -76,6 +123,7 @@ const Registration = () => {
           medicalAidCompany: formData.medicalAidCompany,
           medicalAidNumber: formData.medicalAidNumber,
           raceCategory: formData.raceCategory,
+          raceNumber: newRaceNumber,
           tShirtSize: formData.tShirtSize,
           nextOfKinName: formData.nextOfKinName,
           nextOfKinPhone: formData.nextOfKinPhone,
@@ -84,9 +132,9 @@ const Registration = () => {
 
         // Send confirmation email
         try {
-          const emailResult = await sendRegistrationEmail(registrationData);
+          const emailResult = await sendRegistrationEmail({...registrationData, raceNumber: newRaceNumber});
           console.log('Email service response:', emailResult);
-          toast.success('Registration successful! Check your email for confirmation.');
+          toast.success(`Registration successful! Your race number is ${newRaceNumber}.`);
         } catch (emailError) {
           console.error('Email sending failed:', emailError);
           // Log more details about the error

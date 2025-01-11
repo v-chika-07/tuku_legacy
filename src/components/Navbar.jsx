@@ -4,18 +4,13 @@ import { motion } from 'framer-motion';
 import { 
   FaHome, 
   FaInfoCircle, 
-  FaCalendarAlt, 
-  FaTshirt, 
   FaRunning, 
-  FaHandsHelping, 
   FaEnvelope,
   FaTheaterMasks,
   FaBars, 
   FaTimes, 
-  FaSignOutAlt, 
-  FaMusic 
+  FaSignOutAlt
 } from 'react-icons/fa';
-import MerchDropdown from './MerchDropdown';
 import { useAuth } from '../contexts/AuthContext';
 import { logoutUser } from '../firebase/authService';
 import { toast } from 'react-toastify';
@@ -24,7 +19,6 @@ const Navbar = () => {
   const { isAuthenticated } = useAuth();
   const [nav, setNav] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showMerchDropdown, setShowMerchDropdown] = useState(false);
   const location = useLocation();
 
   const links = [
@@ -33,19 +27,6 @@ const Navbar = () => {
       link: '/about',
       text: 'ABOUT',
       icon: <FaInfoCircle className="mb-1 mx-auto text-lg" />
-    },
-    {
-      id: 3,
-      link: '/events',
-      text: 'EVENTS',
-      icon: <FaCalendarAlt className="mb-1 mx-auto text-lg" />
-    },
-    {
-      id: 4,
-      link: '/merch',
-      text: 'MERCH',
-      icon: <FaTshirt className="mb-1 mx-auto text-lg" />,
-      hasDropdown: true
     },
     {
       id: 5,
@@ -64,12 +45,6 @@ const Navbar = () => {
       link: '/marathon',
       text: 'MARATHON',
       icon: <FaRunning className="mb-1 mx-auto text-lg" />
-    },
-    {
-      id: 8,
-      link: '/omifa',
-      text: 'OMIFA',
-      icon: <FaHandsHelping className="mb-1 mx-auto text-lg" />
     },
     {
       id: 9,
@@ -118,12 +93,10 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <ul className="hidden md:flex space-x-3 items-center">
-          {links.map(({ id, link, text, icon, hasDropdown }) => (
+          {links.map(({ id, link, text, icon }) => (
             <li
               key={id}
               className='relative px-2 cursor-pointer capitalize font-medium text-white hover:scale-105 duration-200'
-              onMouseEnter={() => hasDropdown && setShowMerchDropdown(true)}
-              onMouseLeave={() => hasDropdown && setShowMerchDropdown(false)}
             >
               <Link 
                 to={link} 
@@ -132,12 +105,6 @@ const Navbar = () => {
                 {icon}
                 {text}
               </Link>
-              {hasDropdown && (
-                <MerchDropdown 
-                  isHovered={showMerchDropdown} 
-                  parentPath={link}
-                />
-              )}
             </li>
           ))}
           {isAuthenticated && (

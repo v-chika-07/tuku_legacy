@@ -19,7 +19,6 @@ export default defineConfig({
       external: [/^leaflet\/.*/]
     },
     chunkSizeWarningLimit: 1000,
-    sourcemap: false
   },
   server: {
     port: parseInt(process.env.VITE_PORT) || 3007,

@@ -5,7 +5,6 @@ import {
   FaCalendar, 
   FaMapMarkerAlt, 
   FaRunning, 
-  FaTrophy, 
   FaChevronLeft, 
   FaChevronRight,
   FaHeart,
@@ -14,8 +13,6 @@ import {
   FaUserFriends,
   FaClock
 } from 'react-icons/fa';
-import MarathonRouteMap from '../components/MarathonRouteMap';
-import 'leaflet/dist/leaflet.css';
 
 // Import marathon images
 import marathonImage1 from '../assets/images/IMG-20241218-WA0005.jpg';
@@ -40,7 +37,7 @@ const Marathon = () => {
     title: 'Oliver Mtukudzi Memorial Half Marathon (OM³)',
     date: 'February 2, 2025',
     time: '06:00 AM',
-    location: 'Norton, Zimbabwe',
+    location: 'Pakare Paye Arts Center, Norton, Zimbabwe',
     description: 'Join us for the inaugural Oliver Mtukudzi Memorial Half Marathon (OM³), celebrating the life and legacy of Oliver Mtukudzi. This event marks the 50 Years of Tuku Music celebration in 2025, featuring live performances of Tuku classics, including the inspirational "Wasakara" theme song, while promoting health awareness and community wellness.',
     categories: ['Half Marathon', 'Tuku Music Tribute', 'Community Wellness'],
     highlights: [
@@ -128,22 +125,17 @@ const Marathon = () => {
     {
       icon: <FaCalendar />,
       title: 'Date',
-      description: '6 February 2025, 6:00 AM'
+      description: 'February 2, 2025, 6:00 AM'
     },
     {
       icon: <FaMapMarkerAlt />,
       title: 'Location',
-      description: 'Harare Gardens, Zimbabwe'
+      description: 'Pakare Paye Arts Center, Norton, Zimbabwe'
     },
     {
       icon: <FaRunning />,
       title: 'Categories',
       description: '21km Half Marathon, 10km Fun Run, 5km Walk'
-    },
-    {
-      icon: <FaTrophy />,
-      title: 'Prizes',
-      description: 'Top 3 Finishers in Each Category, Medals for All Participants'
     }
   ];
 
@@ -171,7 +163,7 @@ const Marathon = () => {
   ];
 
   return (
-    <div className="pt-20 bg-gradient-to-br from-primary via-secondary to-accent min-h-screen">
+    <div className="pt-10 bg-gradient-to-br from-primary via-secondary to-accent min-h-screen">
       {/* Featured Marathon Section */}
       <section 
         className="relative py-20 bg-cover bg-center"
@@ -237,12 +229,15 @@ const Marathon = () => {
                 </span>
               ))}
             </div>
-            <div className="flex justify-center">
-              <Link to="/registration">
-                <button className="bg-accent text-white px-8 py-4 rounded-2xl hover:bg-primary transition-colors duration-300 transform hover:scale-105">
-                  Register Now
-                </button>
-              </Link>
+            <div className="mt-8">
+              <a 
+                href="https://onlinetickets.hypenation.co.zw/TheOliverMthukudziMemorialHalfMarathon2025" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-block bg-accent hover:bg-accent-dark text-white font-bold py-4 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
+              >
+                Register Now
+              </a>
             </div>
           </motion.div>
         </div>
@@ -337,16 +332,6 @@ const Marathon = () => {
         </div>
       </section>
 
-      {/* Route Map Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-0 text-black">Race Route</h2>
-          <div className="max-w-6xl mx-auto">
-            <MarathonRouteMap />
-          </div>
-        </div>
-      </section>
-
       {/* About the Marathon Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
@@ -372,12 +357,14 @@ const Marathon = () => {
               </div>
             </div>
             <div className="text-center mt-8">
-              <Link 
-                to="/registration"
+              <a 
+                href="https://onlinetickets.hypenation.co.zw/TheOliverMthukudziMemorialHalfMarathon2025" 
+                target="_blank" 
+                rel="noopener noreferrer"
                 className="bg-white text-black font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 inline-flex items-center justify-center hover:bg-gray-100"
               >
                 Register Now
-              </Link>
+              </a>
             </div>
           </div>
         </div>
