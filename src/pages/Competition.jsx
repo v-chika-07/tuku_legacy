@@ -17,7 +17,7 @@ const Competition = () => {
       >
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="text-center text-white">
-            <h2 className="text-4xl font-bold mb-4">Tuku Music Empowering Global Health Art Competition</h2>
+            <h2 className="text-4xl font-bold mb-4">Oliver Mtukudzi International Festival of the Arts Empowering Global Health Art Competition</h2>
             <p className="text-xl">Join us in celebrating art, music, and health for a brighter future</p>
           </div>
         </div>
@@ -29,7 +29,7 @@ const Competition = () => {
           <div>
             <h2 className="text-2xl font-bold text-black mb-4">About the Competition</h2>
             <p className="text-black mb-6">
-              The Oliver Mtukudzi Memorial Foundation Art Competition is a celebration 
+              The Oliver Mtukudzi International Festival of the Arts Art Competition is a celebration 
               of creativity, health awareness, and the enduring legacy of Oliver Mtukudzi. 
               We invite artists of all ages to express their vision of health, community, 
               and inspiration through various artistic mediums.
@@ -170,10 +170,10 @@ const Competition = () => {
 
       {/* Exhibition Section */}
       <section className="container mx-auto py-16 px-4">
-        <h2 className="text-3xl font-bold text-center text-black mb-12">Your Path to OMIFA</h2>
+        <h2 className="text-3xl font-bold text-center text-black mb-12">Your Path to the Oliver Mtukudzi International Festival of the Arts</h2>
         <p className="text-black text-center">
           Selected artworks will be displayed at Pakare Paye Arts Centre 
-          and featured in the Oliver Mtukudzi International Festival of the Arts (OMIFA) exhibition.
+          and featured in the Oliver Mtukudzi International Festival of the Arts exhibition.
         </p>
       </section>
 
