@@ -6,19 +6,10 @@ import heroImage from '../assets/images/IMG-20241218-WA0005.jpg';
 import childPaintingImage from '../assets/images/IMG-20241218-WA0006.jpg';
 import pencilSketchImage from '../assets/images/IMG-20241218-WA0007.jpg';
 import sculptureImage from '../assets/images/IMG-20241218-WA0008.jpg';
-import communicationImage from '../assets/images/IMG-20241218-WA0005.jpg'; // Using hero image as communication image
 
 const Competition = () => {
   return (
-    <div className="competition-page bg-gray-100">  {/* Removed pt-20 */}
-      {/* Header Section */}
-      <header className="bg-primary text-white py-6">
-        <div className="container mx-auto text-center">
-          {/* Removed text */}
-        </div>
-        {/* Removed navigation section */}
-      </header>
-
+    <div className="competition-page bg-gray-100">
       {/* Hero Section */}
       <section 
         className="relative h-[500px] bg-cover bg-center flex items-center justify-center"
@@ -72,8 +63,7 @@ const Competition = () => {
                 description: "Open to primary school students. Create a vibrant painting expressing health, community, or musical inspiration.",
                 details: [
                   "Age Group: 6-12 years",
-                  "Medium: Painting",
-                  "First Prize: $500 + Art Supplies"
+                  "Medium: Painting"
                 ]
               },
               {
@@ -82,8 +72,7 @@ const Competition = () => {
                 description: "For secondary school students. Create a detailed pencil sketch capturing themes of health and community.",
                 details: [
                   "Age Group: 13-18 years",
-                  "Medium: Pencil Sketch",
-                  "First Prize: $750 + Art Workshop"
+                  "Medium: Pencil Sketch"
                 ]
               },
               {
@@ -92,8 +81,7 @@ const Competition = () => {
                 description: "Open to all artists. Submit paintings, pencil works, or sculptures that embody health, music, and community spirit.",
                 details: [
                   "Age Group: 18+",
-                  "Mediums: Paint, Pencil, Sculpture",
-                  "First Prize: $1000 + OMIFA Exhibition"
+                  "Mediums: Paint, Pencil, Sculpture"
                 ]
               }
             ].map((category) => (
@@ -121,9 +109,9 @@ const Competition = () => {
         </div>
       </section>
 
-      {/* Guidelines & Prizes Section */}
+      {/* Guidelines Section */}
       <section id="guidelines" className="container mx-auto py-16 px-4">
-        <h2 className="text-3xl font-bold text-center text-black mb-12">Submission Guidelines and Prizes</h2>
+        <h2 className="text-3xl font-bold text-center text-black mb-12">Submission Guidelines</h2>
         <div className="max-w-2xl mx-auto bg-primary text-white p-8 rounded-lg">
           <h3 className="text-2xl font-bold text-white mb-6">Submission Requirements</h3>
           <ul className="list-disc list-inside space-y-4">
@@ -170,8 +158,11 @@ const Competition = () => {
             ))}
           </div>
           <div className="text-center mt-12">
-            <button className="bg-primary text-white px-8 py-3 rounded hover:bg-secondary transition">
-              Submit Your Artwork
+            <button 
+              className="bg-gray-400 text-white px-8 py-3 rounded cursor-not-allowed opacity-75"
+              disabled
+            >
+              Coming Soon
             </button>
           </div>
         </div>
@@ -181,46 +172,9 @@ const Competition = () => {
       <section className="container mx-auto py-16 px-4">
         <h2 className="text-3xl font-bold text-center text-black mb-12">Your Path to OMIFA</h2>
         <p className="text-black text-center">
-          Winning artworks will be displayed at Pakare Paye Arts Centre 
-          and featured in the Oliver Mtukudzi International Foundation for Arts (OMIFA) exhibition.
+          Selected artworks will be displayed at Pakare Paye Arts Centre 
+          and featured in the Oliver Mtukudzi International Festival of the Arts (OMIFA) exhibition.
         </p>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className="bg-primary text-white py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-white mb-12">Get in Touch</h2>
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <img 
-                src={communicationImage} 
-                alt="Contact Us" 
-                className="w-full rounded-lg shadow-lg"
-              />
-            </div>
-            <div className="text-center md:text-left">
-              <p className="text-white mb-4">Email: competition@omtukudzifoundation.org</p>
-              <p className="text-white mb-4">Phone: +263 123 456 789</p>
-              <div className="flex justify-center md:justify-start space-x-4 mb-8">
-                {['Facebook', 'Instagram', 'Twitter'].map((platform) => (
-                  <a 
-                    key={platform} 
-                    href="#" 
-                    className="text-white hover:text-secondary"
-                  >
-                    {platform}
-                  </a>
-                ))}
-              </div>
-              <Link 
-                to="/contact" 
-                className="bg-white text-black px-6 py-3 rounded hover:bg-gray-100 transition"
-              >
-                Contact Us Now
-              </Link>
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* Footer */}
