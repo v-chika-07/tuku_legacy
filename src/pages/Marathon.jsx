@@ -19,7 +19,6 @@ import marathonImage1 from '../assets/images/IMG-20241218-WA0005.jpg';
 import marathonImage2 from '../assets/images/IMG-20241218-WA0006.jpg';
 import marathonImage3 from '../assets/images/IMG-20241218-WA0007.jpg';
 import marathonImage4 from '../assets/images/IMG-20241218-WA0008.jpg';
-import marathonImage5 from '../assets/images/marathon-vest-green.jpg';
 
 const Marathon = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -63,8 +62,7 @@ const Marathon = () => {
     marathonImage1,
     marathonImage2,
     marathonImage3,
-    marathonImage4,
-    marathonImage5
+    marathonImage4
   ];
 
   const handleNextSlide = () => {

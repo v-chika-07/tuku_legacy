@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { 
   FaCalendarAlt, 
   FaMapMarkerAlt, 
-  FaTicketAlt,
   FaInfoCircle,
   FaRunning
 } from 'react-icons/fa';
@@ -11,7 +10,6 @@ import { fetchEvents } from '../services/eventService';
 import defaultEventImage from '../assets/images/IMG-20241218-WA0005.jpg';
 import image1 from '../assets/images/IMG-20241218-WA0007.jpg';
 import image2 from '../assets/images/IMG-20241218-WA0008.jpg';
-import TicketPurchaseModal from '../components/TicketPurchaseModal';
 
 const EventHero = ({ event, index }) => {
   // Define gradient colors using the app's theme, switching start and end
@@ -39,16 +37,12 @@ const EventHero = ({ event, index }) => {
     date: event?.date || '',
     startDate: event?.startDate || '',
     endDate: event?.endDate || '',
-    description: event?.description 
-      ? `Join us for an exciting ${event.eventType === 'multi' ? 'multi-day' : 'single-day'} running experience! ${event.description}` 
-      : 'Get ready for an incredible running event that challenges and inspires. Stay tuned for more details!',
+    description: event?.description,
     location: event?.location || 'TBA',
     ticketTypes: event?.ticketTypes || [],
     imageUrl: event?.imageUrl || defaultEventImage,
     status: event?.status || 'live'
   };
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Debug logging
   console.log('Event Object:', event);
@@ -115,30 +109,8 @@ const EventHero = ({ event, index }) => {
               </div>
             )}
           </div>
-
-          {/* Buy Tickets Button */}
-          <div className="mt-4">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className={`w-full px-6 py-3 rounded-lg transition-colors ${
-                safeEvent.status === 'live' 
-                  ? 'bg-accent text-white hover:bg-accent-dark' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-              disabled={safeEvent.status !== 'live'}
-            >
-              {safeEvent.status === 'live' ? 'Buy Tickets' : 'Coming Soon'}
-            </button>
-          </div>
         </div>
       </motion.div>
-
-      {/* Ticket Purchase Modal */}
-      <TicketPurchaseModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        event={safeEvent} 
-      />
     </>
   );
 };

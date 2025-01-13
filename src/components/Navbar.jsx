@@ -9,7 +9,8 @@ import {
   FaTheaterMasks,
   FaBars, 
   FaTimes, 
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaCalendarAlt
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { logoutUser } from '../firebase/authService';
@@ -27,6 +28,12 @@ const Navbar = () => {
       link: '/about',
       text: 'ABOUT',
       icon: <FaInfoCircle className="mb-1 mx-auto text-lg" />
+    },
+    {
+      id: 3,
+      link: '/events',
+      text: 'EVENTS',
+      icon: <FaCalendarAlt className="mb-1 mx-auto text-lg" />
     },
     {
       id: 5,
