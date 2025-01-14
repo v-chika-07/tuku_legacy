@@ -104,19 +104,40 @@ const Home = () => {
               transition={{ delay: 0.7, duration: 0.8 }}
               className="text-xl mb-8 text-white"
             >
-              Together, let's celebrate a legend, raise awareness, and make strides toward a healthier, more connected world
+              Join us for an extraordinary celebration of music, wellness, and community
             </motion.p>
             <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.9, duration: 0.5 }}
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.9, duration: 0.8 }}
             >
-              <a href="https://onlinetickets.hypenation.co.zw/TheOliverMthukudziMemorialHalfMarathon2025" target="_blank" rel="noopener noreferrer">
-                <button className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 inline-flex items-center">
-                  Register Now <FaArrowRight className="ml-2" />
-                </button>
-              </a>
+              <Link
+                to="/marathon"
+                className="inline-block bg-accent hover:bg-accent-dark text-white font-bold py-4 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
+              >
+                Learn More
+              </Link>
             </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Video Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="max-w-6xl mx-auto px-4 py-16"
+        >
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black/20 backdrop-blur-sm">
+            <video
+              className="w-full aspect-video"
+              controls
+              preload="metadata"
+              poster={image1}
+            >
+              <source src="/video/TOM3 promo.mp3" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </div>
         </motion.div>
 
