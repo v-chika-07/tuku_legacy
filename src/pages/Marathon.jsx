@@ -35,7 +35,7 @@ const Marathon = () => {
   const marathonEvent = {
     title: 'Oliver Mtukudzi Memorial Half Marathon (OM³)',
     date: 'February 2, 2025',
-    time: '06:00 AM',
+    time: '05:00 AM',
     location: 'Pakare Paye Arts Center, Norton, Zimbabwe',
     description: 'Join us for the inaugural Oliver Mtukudzi Memorial Half Marathon (OM³), celebrating the life and legacy of Oliver Mtukudzi. This event marks the 50 Years of Tuku Music celebration in 2025, featuring live performances of Tuku classics, including the inspirational "Wasakara" theme song, while promoting health awareness and community wellness.',
     categories: ['Half Marathon', 'Tuku Music Tribute', 'Community Wellness'],
