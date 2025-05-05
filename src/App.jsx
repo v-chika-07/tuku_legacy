@@ -27,6 +27,7 @@ import { CartProvider } from './contexts/CartContext';
 import './App.css'
 import EventsManagement from './pages/EventsManagement';
 import Marathon from './pages/Marathon';
+import MarathonGallery from './pages/MarathonGallery';
 import PakarePaye from './pages/PakarePaye';
 import Competition from './pages/Competition';
 
@@ -84,6 +85,7 @@ function App() {
               <Route path="/coming-soon" element={<ComingSoon />} />
               <Route path="/marathon-merch" element={<MarathonMerch />} />
               <Route path="/marathon" element={<Marathon />} />
+              <Route path="/marathon-gallery" element={<MarathonGallery />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/order-details" element={<OrderDetails />} />
               <Route path="/order-confirmation" element={<OrderSuccess />} />
