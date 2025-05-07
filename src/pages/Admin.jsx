@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FaLock, FaEnvelope, FaShoppingCart, FaUserPlus, FaBoxes, FaCalendarAlt } from 'react-icons/fa';
+import { FaLock, FaEnvelope, FaShoppingCart, FaUserPlus, FaBoxes, FaCalendarAlt, FaImage } from 'react-icons/fa';
 import { db } from '../firebase/config.js';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 
@@ -102,7 +102,7 @@ const Admin = () => {
         </div>
 
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Messages Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -240,6 +240,34 @@ const Admin = () => {
               className="inline-block px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white"
             >
               View Details
+            </Link>
+          </motion.div>
+
+          {/* Image Manager Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            className="bg-black/40 backdrop-blur-sm rounded-2xl p-6 text-white hover:bg-black/50 transition-all duration-300"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <FaImage className="text-2xl" />
+              <h2 className="text-xl font-semibold">Image Manager</h2>
+            </div>
+            <p className="text-white/80">
+              Manage images used throughout the website
+            </p>
+            <div className="mt-4 text-3xl font-bold">
+              <FaImage className="inline-block" />
+            </div>
+            <p className="text-white/60 text-sm mb-4">
+              Customize website images
+            </p>
+            <Link 
+              to="/image-manager" 
+              className="inline-block px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white"
+            >
+              Manage Images
             </Link>
           </motion.div>
         </div>

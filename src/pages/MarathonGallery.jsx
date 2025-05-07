@@ -2,13 +2,98 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaArrowLeft, FaArrowRight, FaTimes, FaChevronDown } from 'react-icons/fa';
 
-// Dynamically import all marathon images
-function importAll(r) {
-  return r.keys().map(r);
-}
-
-// Use webpack's require.context to import all images from the Marathon_pictures directory
-const marathonImages = importAll(require.context('../assets/Marathon_pictures', false, /\.(png|jpe?g|svg)$/));
+// Import all marathon images
+import img1 from '../assets/Marathon_pictures/IMG-20250202-WA0005.jpg';
+import img2 from '../assets/Marathon_pictures/IMG-20250202-WA0006.jpg';
+import img3 from '../assets/Marathon_pictures/IMG-20250202-WA0007.jpg';
+import img4 from '../assets/Marathon_pictures/IMG-20250202-WA0008.jpg';
+import img5 from '../assets/Marathon_pictures/IMG-20250202-WA0009.jpg';
+import img6 from '../assets/Marathon_pictures/IMG-20250202-WA0010.jpg';
+import img7 from '../assets/Marathon_pictures/IMG-20250202-WA0011.jpg';
+import img8 from '../assets/Marathon_pictures/IMG-20250202-WA0013.jpg';
+import img9 from '../assets/Marathon_pictures/IMG-20250202-WA0015.jpg';
+import img10 from '../assets/Marathon_pictures/IMG-20250202-WA0017.jpg';
+import img11 from '../assets/Marathon_pictures/IMG-20250202-WA0019.jpg';
+import img12 from '../assets/Marathon_pictures/IMG-20250202-WA0021.jpg';
+import img13 from '../assets/Marathon_pictures/IMG-20250202-WA0023.jpg';
+import img14 from '../assets/Marathon_pictures/IMG-20250203-WA0022.jpg';
+import img15 from '../assets/Marathon_pictures/IMG-20250202-WA0027.jpg';
+import img16 from '../assets/Marathon_pictures/IMG-20250202-WA0029.jpg';
+import img17 from '../assets/Marathon_pictures/IMG-20250202-WA0031.jpg';
+import img18 from '../assets/Marathon_pictures/IMG-20250202-WA0033.jpg';
+import img19 from '../assets/Marathon_pictures/IMG-20250202-WA0035.jpg';
+import img20 from '../assets/Marathon_pictures/IMG-20250202-WA0037.jpg';
+import img21 from '../assets/Marathon_pictures/IMG-20250202-WA0039.jpg';
+import img22 from '../assets/Marathon_pictures/IMG-20250202-WA0041.jpg';
+import img23 from '../assets/Marathon_pictures/IMG-20250202-WA0043.jpg';
+import img24 from '../assets/Marathon_pictures/IMG-20250202-WA0045.jpg';
+import img25 from '../assets/Marathon_pictures/IMG-20250202-WA0047.jpg';
+import img26 from '../assets/Marathon_pictures/IMG-20250202-WA0049.jpg';
+import img27 from '../assets/Marathon_pictures/IMG-20250202-WA0051.jpg';
+import img28 from '../assets/Marathon_pictures/IMG-20250202-WA0053.jpg';
+import img29 from '../assets/Marathon_pictures/IMG-20250202-WA0055.jpg';
+import img30 from '../assets/Marathon_pictures/IMG-20250202-WA0056.jpg';
+import img31 from '../assets/Marathon_pictures/IMG-20250202-WA0058.jpg';
+import img32 from '../assets/Marathon_pictures/IMG-20250202-WA0060.jpg';
+import img33 from '../assets/Marathon_pictures/IMG-20250202-WA0062.jpg';
+import img34 from '../assets/Marathon_pictures/IMG-20250202-WA0064.jpg';
+import img35 from '../assets/Marathon_pictures/IMG-20250202-WA0066.jpg';
+import img36 from '../assets/Marathon_pictures/IMG-20250202-WA0068.jpg';
+import img37 from '../assets/Marathon_pictures/IMG-20250202-WA0070.jpg';
+import img38 from '../assets/Marathon_pictures/IMG-20250202-WA0072.jpg';
+import img39 from '../assets/Marathon_pictures/IMG-20250202-WA0074.jpg';
+import img40 from '../assets/Marathon_pictures/IMG-20250202-WA0076.jpg';
+import img41 from '../assets/Marathon_pictures/IMG-20250202-WA0078.jpg';
+import img42 from '../assets/Marathon_pictures/IMG-20250202-WA0080.jpg';
+import img43 from '../assets/Marathon_pictures/IMG-20250202-WA0082.jpg';
+import img44 from '../assets/Marathon_pictures/IMG-20250202-WA0084.jpg';
+import img45 from '../assets/Marathon_pictures/IMG-20250202-WA0086.jpg';
+import img46 from '../assets/Marathon_pictures/IMG-20250202-WA0088.jpg';
+import img47 from '../assets/Marathon_pictures/IMG-20250202-WA0090.jpg';
+import img48 from '../assets/Marathon_pictures/IMG-20250202-WA0092.jpg';
+import img49 from '../assets/Marathon_pictures/IMG-20250203-WA0001.jpg';
+import img50 from '../assets/Marathon_pictures/IMG-20250203-WA0002.jpg';
+import img51 from '../assets/Marathon_pictures/IMG-20250203-WA0007.jpg';
+import img52 from '../assets/Marathon_pictures/IMG-20250203-WA0008.jpg';
+import img53 from '../assets/Marathon_pictures/IMG-20250203-WA0009.jpg';
+import img54 from '../assets/Marathon_pictures/IMG-20250203-WA0010.jpg';
+import img55 from '../assets/Marathon_pictures/IMG-20250203-WA0011.jpg';
+import img56 from '../assets/Marathon_pictures/IMG-20250203-WA0012.jpg';
+import img57 from '../assets/Marathon_pictures/IMG-20250203-WA0013.jpg';
+import img58 from '../assets/Marathon_pictures/IMG-20250203-WA0014.jpg';
+import img59 from '../assets/Marathon_pictures/IMG-20250203-WA0015.jpg';
+import img60 from '../assets/Marathon_pictures/IMG-20250203-WA0016.jpg';
+import img61 from '../assets/Marathon_pictures/IMG-20250203-WA0017.jpg';
+import img62 from '../assets/Marathon_pictures/IMG-20250203-WA0018.jpg';
+import img63 from '../assets/Marathon_pictures/IMG-20250203-WA0019.jpg';
+import img64 from '../assets/Marathon_pictures/IMG-20250203-WA0020.jpg';
+import img65 from '../assets/Marathon_pictures/IMG-20250203-WA0021.jpg';
+import img66 from '../assets/Marathon_pictures/IMG-20250203-WA0023.jpg';
+import img67 from '../assets/Marathon_pictures/IMG-20250203-WA0024.jpg';
+import img68 from '../assets/Marathon_pictures/IMG-20250203-WA0025.jpg';
+import img69 from '../assets/Marathon_pictures/IMG-20250203-WA0026.jpg';
+import img70 from '../assets/Marathon_pictures/IMG-20250203-WA0027.jpg';
+import img71 from '../assets/Marathon_pictures/IMG-20250203-WA0028.jpg';
+import img72 from '../assets/Marathon_pictures/IMG-20250203-WA0029.jpg';
+import img73 from '../assets/Marathon_pictures/IMG-20250203-WA0030.jpg';
+import img74 from '../assets/Marathon_pictures/IMG-20250203-WA0031.jpg';
+import img75 from '../assets/Marathon_pictures/IMG-20250203-WA0032.jpg';
+import img76 from '../assets/Marathon_pictures/IMG-20250203-WA0033.jpg';
+import img77 from '../assets/Marathon_pictures/IMG-20250203-WA0034.jpg';
+import img78 from '../assets/Marathon_pictures/IMG-20250203-WA0035.jpg';
+import img79 from '../assets/Marathon_pictures/IMG-20250203-WA0036.jpg';
+import img80 from '../assets/Marathon_pictures/IMG-20250203-WA0037.jpg';
+import img81 from '../assets/Marathon_pictures/IMG-20250203-WA0038.jpg';
+import img82 from '../assets/Marathon_pictures/IMG-20250203-WA0039.jpg';
+import img83 from '../assets/Marathon_pictures/IMG-20250203-WA0040.jpg';
+import img84 from '../assets/Marathon_pictures/IMG-20250203-WA0041.jpg';
+import img85 from '../assets/Marathon_pictures/IMG-20250203-WA0042.jpg';
+import img86 from '../assets/Marathon_pictures/IMG-20250203-WA0043.jpg';
+import img87 from '../assets/Marathon_pictures/IMG-20250203-WA0044.jpg';
+import img88 from '../assets/Marathon_pictures/IMG-20250203-WA0045.jpg';
+import img89 from '../assets/Marathon_pictures/IMG-20250203-WA0046.jpg';
+import img90 from '../assets/Marathon_pictures/IMG-20250203-WA0047.jpg';
+import img91 from '../assets/Marathon_pictures/IMG-20250203-WA0051.jpg';
 
 const MarathonGallery = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -17,13 +102,19 @@ const MarathonGallery = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const imagesPerPage = 20;
 
-  // Sort the images to ensure consistent order
-  const allImages = [...marathonImages].sort((a, b) => {
-    // Extract filenames for sorting
-    const fileA = a.split('/').pop();
-    const fileB = b.split('/').pop();
-    return fileA.localeCompare(fileB);
-  });
+  // Combine all images into one array
+  const allImages = [
+    img1, img2, img3, img4, img5, img6, img7, img8, img9, img10,
+    img11, img12, img13, img14, img15, img16, img17, img18, img19, img20,
+    img21, img22, img23, img24, img25, img26, img27, img28, img29, img30,
+    img31, img32, img33, img34, img35, img36, img37, img38, img39, img40,
+    img41, img42, img43, img44, img45, img46, img47, img48, img49, img50,
+    img51, img52, img53, img54, img55, img56, img57, img58, img59, img60,
+    img61, img62, img63, img64, img65, img66, img67, img68, img69, img70,
+    img71, img72, img73, img74, img75, img76, img77, img78, img79, img80,
+    img81, img82, img83, img84, img85, img86, img87, img88, img89, img90,
+    img91
+  ];
   
   // Load images in batches
   useEffect(() => {
@@ -166,7 +257,7 @@ const MarathonGallery = () => {
               Image {currentIndex + 1} of {allImages.length}
             </p>
             <p className="text-white mt-2 text-sm text-center opacity-70">
-              {allImages[currentIndex].split('/').pop()}
+              Marathon Image {currentIndex + 1}
             </p>
           </div>
         </div>

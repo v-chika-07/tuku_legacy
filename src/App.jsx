@@ -30,6 +30,7 @@ import Marathon from './pages/Marathon';
 import MarathonGallery from './pages/MarathonGallery';
 import PakarePaye from './pages/PakarePaye';
 import Competition from './pages/Competition';
+import ImageManager from './pages/ImageManager';
 
 function App() {
   return (
@@ -92,6 +93,7 @@ function App() {
               <Route path="/ticket-order-success" element={<TicketOrderSuccess />} />
               <Route path="/pakare-paye" element={<PakarePaye />} />
               <Route path="/competition" element={<Competition />} />
+              <Route path="/image-manager" element={<ImageManager />} />
             </Routes>
           </div>
         </CartProvider>
